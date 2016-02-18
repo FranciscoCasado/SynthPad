@@ -18,6 +18,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
+
 module dac_interface(
     CLK_IN,
     DATA_IN,
@@ -39,16 +40,13 @@ module dac_interface(
     
     parameter DAC_ID = 4'b0000;
     parameter DAC_COMMAND  = 4'b0011;
-    parameter PRE_SCALER = 1;
     
-    reg [31:0] shift_register;
-    reg [11:0] last_data = 11'b00000000000;
+    reg [31:0] shift_register = 32'b0;
+    reg [11:0] last_data = 12'b00000000000;
     
-    reg clk_tmp = 0;
     reg clk0 = 0;
     reg clk1 = 0;
     reg init;
-    reg [7:0] clk_div = 8'b00000000;
     reg clk_delay = 1'b0;
     reg [5:0] shift_counter;
     
@@ -56,21 +54,7 @@ module dac_interface(
     
     assign new_data = |(DATA_IN - last_data);
     assign SPI_SCK = (init == 1 & shift_counter != 0 ) ? clk1 : 0; // Be a greenpeace signal?
-    
-    // Generates slower clock for SPI Comms
-/*    always@(posedge CLK_IN)
-    begin
-        if(clk_div == PRE_SCALER)
-        begin
-            clk_tmp <= ~clk_tmp;
-            clk_div <= 8'b00000000;
-        end
-        else
-        begin
-            clk_div <= clk_div + 8'b00000001;
-        end
-    end
-*/    
+       
     // Creates 2 Clocks with a 90 phase delay
     always@(posedge CLK_IN)
     begin
