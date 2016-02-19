@@ -133,84 +133,60 @@ begin
         when set_start_address =>
           byte <= X"80"; -- first char of first line
         when write_data_13 =>
-		    if(test_lcd(13) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(13) = '1') then
-				byte <= X"31";
-			 end if;
+		  byte <= X"4E"; -- N
         when write_data_12 =>
-          if(test_lcd(12) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(12) = '1') then
-				byte <= X"31";
-			 end if;
+          byte <= X"4F"; -- O
         when write_data_11 =>
-          if(test_lcd(11) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(11) = '1') then
-				byte <= X"31";
-			 end if;
+          byte <= X"54"; -- T
         when write_data_10 =>
-          if(test_lcd(10) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(10) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_9 =>
-          if(test_lcd(9) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(9) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_8 =>
-          if(test_lcd(8) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(8) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_7 =>
+          byte <= X"45"; -- E
+		when write_data_9 =>
+          byte <= X"3A"; -- :
+		when write_data_8 =>
+          byte <= X"FE"; -- :
+		when write_data_7 =>
           if(test_lcd(7) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(7) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_6 =>
+		when write_data_6 =>
           if(test_lcd(6) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(6) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_5 =>
+		when write_data_5 =>
           if(test_lcd(5) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(5) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_4 =>
+		when write_data_4 =>
           if(test_lcd(4) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(4) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_3 =>
+		when write_data_3 =>
           if(test_lcd(3) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(3) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_2 =>
+		when write_data_2 =>
           if(test_lcd(2) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(2) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_1 =>
+		when write_data_1 =>
           if(test_lcd(1) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(1) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_data_0 =>
+		when write_data_0 =>
           if(test_lcd(0) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd(0) = '1') then
@@ -224,43 +200,43 @@ begin
 			 elsif(test_lcd_wr(7) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_6 =>
+		when write_digit_wr_6 =>
           if(test_lcd_wr(6) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(6) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_5 =>
+		when write_digit_wr_5 =>
           if(test_lcd_wr(5) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(5) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_4 =>
+		when write_digit_wr_4 =>
           if(test_lcd_wr(4) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(4) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_3 =>
+		when write_digit_wr_3 =>
           if(test_lcd_wr(3) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(3) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_2 =>
+		when write_digit_wr_2 =>
           if(test_lcd_wr(2) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(2) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_1 =>
+		when write_digit_wr_1 =>
           if(test_lcd_wr(1) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(1) = '1') then
 				byte <= X"31";
 			 end if;
-		  when write_digit_wr_0 =>
+		when write_digit_wr_0 =>
           if(test_lcd_wr(0) = '0') then
 				byte <= X"30";
 			 elsif(test_lcd_wr(0) = '1') then
