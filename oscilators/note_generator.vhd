@@ -26,8 +26,6 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
--- 82 samples per note !
-
 entity note_generator is
   port ( 
     clk       : in   std_logic;
@@ -38,6 +36,7 @@ end note_generator;
 
 architecture Behavioral of note_generator is
 
+-- Note constants
   signal C1 : unsigned(10 downto 0) := TO_UNSIGNED(1912,11);
   signal D1 : unsigned(10 downto 0) := TO_UNSIGNED(1702,11);
   signal E1 : unsigned(10 downto 0) := TO_UNSIGNED(1517,11);
@@ -47,17 +46,21 @@ architecture Behavioral of note_generator is
   signal B1 : unsigned(10 downto 0) := TO_UNSIGNED(1011,11);
   signal C2 : unsigned(10 downto 0) := TO_UNSIGNED(955,11);
   
+ -- Wave generation
   signal counter : unsigned(11 downto 0);
   signal max_counter : unsigned(11 downto 0);
   
+ -- External input control
   signal sw_prev : std_logic;
   
+ -- States for the state machine
   type state_type is(state_c1, state_d1, state_e1, state_f1, state_g1, state_a1, state_b1, state_c2);
   signal state_reg, state_next : state_type;
 
 begin
  -- 100 samples per note
-
+ 
+ -- Wave generation
   process(clk, reset)
   begin
     if(reset = '1') then
@@ -75,6 +78,7 @@ begin
     end if;
   end process;
   
+  -- State machine declaration
   process(clk, reset)
   begin
     if(reset = '1') then
@@ -90,6 +94,7 @@ begin
     end if;
   end process;
   
+  -- Note changes depending on current state
   process(state_reg)
   begin
     if(state_reg = state_c1) then
