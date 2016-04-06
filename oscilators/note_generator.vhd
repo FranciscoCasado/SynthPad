@@ -47,8 +47,8 @@ architecture Behavioral of note_generator is
   signal C2 : unsigned(10 downto 0) := TO_UNSIGNED(955,11);
   
  -- Wave generation
-  signal counter : unsigned(11 downto 0);
-  signal max_counter : unsigned(11 downto 0);
+  signal counter : unsigned(10 downto 0);
+  signal max_counter : unsigned(10 downto 0);
   
  -- External input control
   signal sw_prev : std_logic;
