@@ -2,15 +2,15 @@
 -- Company: 
 -- Engineer:
 --
--- Create Date:   01:13:50 04/05/2016
+-- Create Date:   19:47:34 04/06/2016
 -- Design Name:   
--- Module Name:   C:/Users/K n z o/Dropbox/SynthLaunchpad/MIDI-FPGA/Codigo/oscilators/note_test.vhd
+-- Module Name:   C:/Users/Kenzo/Dropbox/SynthLaunchpad/MIDI-FPGA/Codigo/oscilators/square_osc_test.vhd
 -- Project Name:  oscilators
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
 -- 
--- VHDL Test Bench Created by ISE for module: note_generator
+-- VHDL Test Bench Created by ISE for module: square_osc
 -- 
 -- Dependencies:
 -- 
@@ -25,50 +25,50 @@
 -- to guarantee that the testbench will bind correctly to the post-implementation 
 -- simulation model.
 --------------------------------------------------------------------------------
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
  
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-entity note_test is
-end note_test;
+entity square_osc_test is
+end square_osc_test;
  
-architecture behavior of note_test is 
- 
+architecture behavior of square_osc_test is 
+   
   -- Component Declaration for the Unit Under Test (UUT)
  
-  component note_generator
+  component square_osc
     port(
-      clk       : in  std_logic;
-      reset     : in  std_logic;
-      sw        : in  std_logic;
-      note_tick : out  std_logic
+      clk      : in  std_logic;
+      reset    : in  std_logic;
+      tick     : in  std_logic;
+      data_out : out  std_logic_vector(7 downto 0)
     );
   end component;
     
 
-   --Inputs
-   signal clk   : std_logic := '0';
-   signal reset : std_logic := '0';
-   signal sw    : std_logic := '0';
+  --Inputs
+  signal clk : std_logic := '0';
+  signal reset : std_logic;
+  signal tick : std_logic;
 
  	--Outputs
-   signal note_tick : std_logic;
+  signal data_out : std_logic_vector(7 downto 0);
 
-   -- Clock period definitions
-   constant clk_period : time := 20 ns;
+  -- Clock period definitions
+  constant clk_period : time := 10 ns;
  
 begin
  
-	-- Instantiate the Unit Under Test (UUT)
-  uut: note_generator 
+  -- Instantiate the Unit Under Test (UUT)
+  uut: square_osc 
   port map(
-    clk       => clk,
-    reset     => reset,
-    sw        => sw,
-    note_tick => note_tick
+    clk      => clk,
+    reset    => reset,
+    tick     => tick,
+    data_out => data_out
   );
 
   -- Clock process definitions
@@ -87,10 +87,12 @@ begin
     -- hold reset state for 100 ns.
     wait for 100 ns;	
     reset <= '1';
+    tick  <= '0';
     wait for clk_period*10;
     reset <= '0';
+    tick  <= '1';
     -- insert stimulus here 
-
+    wait for clk_period*100;
     wait;
   end process;
 
