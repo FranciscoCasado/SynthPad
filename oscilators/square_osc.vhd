@@ -26,16 +26,17 @@ entity square_osc is
     clk      : in  std_logic;
     reset    : in  std_logic;
     tick     : in  std_logic;
-    data_out : out std_logic_vector(9 downto 0));
+    wave_out : out std_logic_vector(9 downto 0));
 end square_osc;
 
 architecture Behavioral of square_osc is
 
   signal counter : unsigned(5 downto 0);
   signal state : std_logic;
+  
 begin
   
-  data_out <= "1111111111" when state = '1' else 
+  wave_out <= "1111111111" when state = '1' else 
      "0000000000" when state = '0';
   
   process(clk, tick, reset)
