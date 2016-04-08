@@ -32,14 +32,14 @@ end note_generator;
 architecture Behavioral of note_generator is
 
   -- Note constants
-  signal C1 : unsigned(10 downto 0) := TO_UNSIGNED(1912, 11);
-  signal D1 : unsigned(10 downto 0) := TO_UNSIGNED(1702, 11);
-  signal E1 : unsigned(10 downto 0) := TO_UNSIGNED(1517, 11);
-  signal F1 : unsigned(10 downto 0) := TO_UNSIGNED(1432, 11);
-  signal G1 : unsigned(10 downto 0) := TO_UNSIGNED(1276, 11);
-  signal A1 : unsigned(10 downto 0) := TO_UNSIGNED(1135, 11);
-  signal B1 : unsigned(10 downto 0) := TO_UNSIGNED(1011, 11);
-  signal C2 : unsigned(10 downto 0) := TO_UNSIGNED(955, 11);
+  constant C1 : unsigned(10 downto 0) := TO_UNSIGNED(1912, 11);
+  constant D1 : unsigned(10 downto 0) := TO_UNSIGNED(1702, 11);
+  constant E1 : unsigned(10 downto 0) := TO_UNSIGNED(1517, 11);
+  constant F1 : unsigned(10 downto 0) := TO_UNSIGNED(1432, 11);
+  constant G1 : unsigned(10 downto 0) := TO_UNSIGNED(1276, 11);
+  constant A1 : unsigned(10 downto 0) := TO_UNSIGNED(1135, 11);
+  constant B1 : unsigned(10 downto 0) := TO_UNSIGNED(1011, 11);
+  constant C2 : unsigned(10 downto 0) := TO_UNSIGNED(955, 11);
   
  -- Wave generation
   signal counter : unsigned(10 downto 0);

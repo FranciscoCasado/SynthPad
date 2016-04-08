@@ -54,7 +54,7 @@ begin
     
   e4 <= wave_4 when ctrl(3) = '1' else
     "0000000000";
-    
-  sum <= to_unsigned(e1,12) + to_unsigned(e2,12) + to_unsigned(e3,12) + to_unsigned(e4,12);
+    -- + to_unsigned(e2,12) + to_unsigned(e3,12) + to_unsigned(e4,12)
+  sum <= ("00" & unsigned(e1)) + ("00" & unsigned(e2)) + ("00" & unsigned(e3)) + ("00" & unsigned(e4));
 end Behavioral;
 
