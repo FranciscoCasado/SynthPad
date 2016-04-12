@@ -39,6 +39,12 @@ architecture Behavioral of wave_mixer is
   signal e4 : std_logic_vector(9 downto 0);
   
   signal sum : unsigned(11 downto 0);
+  
+  signal u1 : unsigned(11 downto 0);
+  signal u2 : unsigned(11 downto 0);
+  signal u3 : unsigned(11 downto 0);
+  signal u4 : unsigned(11 downto 0);
+  
 begin
 
   wave_out <= std_logic_vector(sum);
@@ -54,7 +60,12 @@ begin
     
   e4 <= wave_4 when ctrl(3) = '1' else
     "0000000000";
-    
-  sum <= to_unsigned(e1,12) + to_unsigned(e2,12) + to_unsigned(e3,12) + to_unsigned(e4,12);
+  
+  u1 <= "00"&unsigned(e1);
+  u2 <= "00"&unsigned(e2);
+  u3 <= "00"&unsigned(e3);
+  u4 <= "00"&unsigned(e4);
+	 
+  sum <= u1 + u2 + u3 + u4;--to_unsigned(e1,12)-- + to_unsigned(e2,12) + to_unsigned(e3,12) + to_unsigned(e4,12);
 end Behavioral;
 

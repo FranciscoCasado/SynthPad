@@ -54,6 +54,11 @@ architecture Behavioral of synth_controller is
     );
 	end component;
 
+  signal wave_1 : std_logic_vector(9 downto 0);
+  signal wave_2 : std_logic_vector(9 downto 0);
+  signal wave_3 : std_logic_vector(9 downto 0);
+  signal wave_4 : std_logic_vector(9 downto 0);
+
 begin
 
   Inst_voice_unit_1 : voice_unit
