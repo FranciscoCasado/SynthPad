@@ -47,8 +47,7 @@ architecture Behavioral of uart_top_module is
     rx           : in   std_logic;
     s_tick       : in   std_logic;
     rx_done_tick : out  std_logic;
-    dout         : out  std_logic_vector(7 downto 0);
-    debug_state  : out  std_logic_vector(7 downto 0)
+    dout         : out  std_logic_vector(7 downto 0)
   );
   end component;
     
@@ -85,7 +84,7 @@ begin
           state <= '1';
         end if;
       
-        LED <= rx&s_tick&rx_done_tick&uart_out(4 downto 0);
+        LED <= rx & s_tick & rx_done_tick & uart_out(4 downto 0);
       end if;
       
     end if;
@@ -105,9 +104,7 @@ begin
     rx           => rx,
     s_tick       => s_tick,
     rx_done_tick => rx_done_tick,
-    dout         => uart_out,
-    debug_state  => 
+    dout         => uart_out
   );
 
 end Behavioral;
-

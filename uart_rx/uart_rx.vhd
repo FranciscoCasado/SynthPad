@@ -5,31 +5,32 @@ use ieee.numeric_std.all;
 
 entity uart_rx is
 generic(
-  DBIT    : integer := 8;--#databits
-  SB_TICK : integer := 16--#ticksforstopbits
+  DBIT    : integer := 8;  -- data bits
+  SB_TICK : integer := 16  -- ticks for stop bits
 );
 port(
   clk,reset    : in std_logic;
-  rx           : in std_logic;
-  s_tick       : in std_logic;
-  rx_done_tick : out std_logic;
-  dout         : out std_logic_vector(7 downto 0);
-  debug_state  : out std_logic_vector(7 downto 0)
+  rx           : in std_logic;  -- data line signal
+  s_tick       : in std_logic;  -- over-sampling tick (16 times faster)
+  rx_done_tick : out std_logic;  -- 
+  dout         : out std_logic_vector(7 downto 0)
 );
 end uart_rx;
 
-architecture arch of uart_rx is
-type state_type is(idle, start, data, stop);
+architecture Behavioural of uart_rx is
 
-signal s_reg, s_next : unsigned(3 downto 0);
-signal n_reg, n_next : unsigned(2 downto 0);
-signal b_reg, b_next : std_logic_vector(7 downto 0);
+-- Signals declaration
+signal s_reg, s_next : unsigned(3 downto 0);  -- samples signal
+signal n_reg, n_next : unsigned(2 downto 0);  --
+signal b_reg, b_next : std_logic_vector(7 downto 0);  -- bytes signal
+
+-- States declaration
+type state_type is(idle, start, data, stop);
 signal state_reg, state_next : state_type;
 
 begin
 
-debug_state <= b_reg;
-
+-- reset logic
 process(clk, reset, state_next)
 begin
   if(reset = '1') then
@@ -45,6 +46,7 @@ begin
   end if;
 end process;
 
+-- Next state logic
 process(state_reg, s_reg, n_reg, b_reg, s_tick, rx)
 begin
   state_next <= state_reg;
@@ -54,50 +56,55 @@ begin
   rx_done_tick <= '0';
   
   case state_reg is
+  
+    -- idle : waiting for rx = '0'
     when idle=>
       if rx = '0' then
         state_next <= start;
         s_next <= (others => '0');
       end if;
-  when start =>
-    if(s_tick = '1')then
-      if s_reg = 7 then
-        state_next <= data;
-        s_next <= (others => '0');
-        n_next <= (others => '0');
-      else
-      s_next <= s_reg + 1;
-
-    end if;
-  end if;
-
-  when data =>
-    if(s_tick = '1') then
-      if s_reg = 15 then
-        s_next <= (others => '0');
-        b_next <= rx & b_reg(7 downto 1);
-        if n_reg = (DBIT - 1) then
-          state_next <= stop;
-        else
-          n_next <= n_reg + 1;
-        end if;
-      else
-        s_next <= s_reg + 1;
-      end if;
-    end if;
-
-  when stop =>
-    if(s_tick = '1') then
-      if s_reg = (SB_TICK - 1 ) then
-        state_next <= idle;
-        rx_done_tick <= '1';
-      else
-        s_next <= s_reg + 1;
-      end if;
-    end if;
+		
+    -- start 
+    when start =>
+	   if(s_tick = '1')then
+		  if s_reg = 7 then
+		    state_next <= data;
+			 s_next <= (others => '0');
+			 n_next <= (others => '0');
+		  else
+			 s_next <= s_reg + 1;
+		  end if;
+	   end if;
+		
+    -- data
+    when data =>
+	   if(s_tick = '1') then
+		  if s_reg = 15 then
+			 s_next <= (others => '0');
+			 b_next <= rx & b_reg(7 downto 1);
+			 if n_reg = (DBIT - 1) then
+			   state_next <= stop;
+			 else
+			   n_next <= n_reg + 1;
+			 end if;
+		  else
+		    s_next <= s_reg + 1;
+		  end if;
+		end if;
+		
+	 -- stop	
+    when stop =>
+	   if(s_tick = '1') then
+		  if s_reg = (SB_TICK - 1 ) then
+			 state_next <= idle;
+			 rx_done_tick <= '1';
+		  else
+			 s_next <= s_reg + 1;
+		  end if;
+		end if;
   end case;
 end process;
 
 dout <= b_reg;
 
-end arch;
+end Behavioural;
