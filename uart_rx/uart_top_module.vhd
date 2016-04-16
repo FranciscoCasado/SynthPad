@@ -66,6 +66,7 @@ architecture Behavioral of uart_top_module is
   
   signal state : std_logic;
   signal counter : unsigned(26 downto 0);
+
 begin
 
   process(clk,reset)
@@ -88,6 +89,14 @@ begin
       end if;
       
     end if;
+  end process;
+  
+  process
+  begin
+    clk <= '0';
+    wait for 10 NS;
+    clk <= '1';
+    wait for 10 NS;
   end process;
 
   Inst_baudrate_generator: baudrate_generator 

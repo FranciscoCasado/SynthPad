@@ -23,8 +23,8 @@ use ieee.numeric_std.all;
 
 entity baudrate_generator is
   generic(
-    N : integer := 8;		-- 
-    M : integer := 163		--
+    M : integer := 100; -- # of clock periods needed to oversample at 16 times
+    N : integer := 8		-- 
   );
   port(
     clk : in std_logic;
