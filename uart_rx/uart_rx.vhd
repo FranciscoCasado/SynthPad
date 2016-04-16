@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 entity uart_rx is
 generic(
-  DBIT    : integer := 8;  -- data bits
+  DBIT    : integer := 8;  -- # of data bits
   Sbyte_TICK : integer := 16  -- ticks for stop bits
 );
 port(
@@ -22,8 +22,7 @@ architecture Behavioural of uart_rx is
   -- Signals declaration
   signal sample_reg, sample_next : unsigned(3 downto 0);  -- samples signal
   signal n_reg, n_next : unsigned(2 downto 0);  -- number of bits sampled
-  signal byte_reg, byte_next : std_logic_vector(7 downto 0);  -- bytes signal
-  signal rx_done : std_logic;
+  signal byte_reg, byte_next : std_logic_vector(7 downto 0);  -- byte signal
 
   -- States declaration
   type state_type is(idle, start, data, stop);
@@ -47,15 +46,17 @@ begin
   end if;
 end process;
 
--- Next state logic
+-- State Machine
 process(state_reg, sample_reg, n_reg, byte_reg, sample_tick)
 begin
+  -- Update variables
   state_next <= state_reg;
   sample_next <= sample_reg;
   n_next <= n_reg;
   byte_next <= byte_reg;
-  rx_done <= '0';
+  rx_done_tick <= '0';
   
+  -- Next state logic
   case state_reg is
   
     -- idle : waiting for rx = '0'
@@ -70,7 +71,7 @@ begin
     -- start 
     when start =>
 	   if(sample_tick = '1')then
-		  if sample_reg = 15 then
+		  if sample_reg = 7 then -- just count upto 7, so the bits are sampled in the middle of the period
 		    state_next <= data;
 			 sample_next <= (others => '0');
 			 n_next <= (others => '0');
@@ -81,15 +82,14 @@ begin
 		
     -- data
     when data =>
-	   -- sample at every tick
 	   if(sample_tick = '1') then
-		  if sample_reg = 15 then -- next state condition
+		  if sample_reg = 15 then -- next bit condition
 			 sample_next <= (others => '0');
 			 byte_next <= rx & byte_reg(7 downto 1); -- Rotate right
 			 if n_reg = (DBIT - 1) then
 			   state_next <= stop;
 			 else
-			   n_next <= n_reg + 1;
+			   n_next <= n_reg + 1; -- increase number of sampled bits
 			 end if;
 		  else
 		    sample_next <= sample_reg + 1;
@@ -101,7 +101,7 @@ begin
 	   if(sample_tick = '1') then
 		  if sample_reg = (Sbyte_TICK - 1 ) then
 			 state_next <= idle;
-			 rx_done <= '1';
+			 rx_done_tick <= '1';
 		  else
 			 sample_next <= sample_reg + 1;
 		  end if;
@@ -109,13 +109,6 @@ begin
   end case;
 end process;
 
-process(rx_done)
-begin
-  if (rx_done'event and rx_done = '1') then
-    dout <= byte_reg;
-  end if;
-end process;
-
-rx_done_tick <= rx_done;
+dout <= byte_reg;
 
 end Behavioural;

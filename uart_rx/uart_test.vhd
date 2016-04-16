@@ -112,7 +112,7 @@ begin
     wait for clk_period*10;
     reset <= '0';
 	 wait for clk_period*500;
-    -- insert stimulus here 
+    -- First Byte
     wait for clk_period*1600; rx <= '0'; -- start
     wait for clk_period*1600; rx <= '1'; -- LSB
     wait for clk_period*1600; rx <= '0';
@@ -123,17 +123,30 @@ begin
     wait for clk_period*1600; rx <= '1';
     wait for clk_period*1600; rx <= '0'; -- MSB
     wait for clk_period*1600; rx <= '1'; -- stop
-    
+    -- pause
 	 wait for clk_period*2050;
-    -- insert stimulus here 
+    -- Second Byte
+    wait for clk_period*1600; rx <= '0'; -- start
+    wait for clk_period*1600; rx <= '1'; -- LSB
+    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0'; -- MSB
+    wait for clk_period*1600; rx <= '1'; -- stop
+	 --pause
+	 wait for clk_period*10;
+    -- Third Byte
     wait for clk_period*1600; rx <= '0'; -- start
     wait for clk_period*1600; rx <= '1'; -- LSB
     wait for clk_period*1600; rx <= '0';
-    wait for clk_period*1600; rx <= '1';
     wait for clk_period*1600; rx <= '0';
-    wait for clk_period*1600; rx <= '1';
     wait for clk_period*1600; rx <= '0';
-    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
     wait for clk_period*1600; rx <= '0'; -- MSB
     wait for clk_period*1600; rx <= '1'; -- stop
     wait;
