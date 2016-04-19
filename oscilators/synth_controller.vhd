@@ -24,13 +24,22 @@ use ieee.numeric_std.all;
 entity synth_controller is
   port ( 
     clk          : in  std_logic;
-    reset        : in  std_logic;
-    sw           : in  std_logic_vector(3 downto 0);
+    --reset        : in  std_logic;
+    SW           : in  std_logic_vector(3 downto 0);
     button_north : in  std_logic;
     button_east  : in  std_logic;
     rot_enc_a    : in  std_logic;
     rot_enc_b    : in  std_logic;
-    wave_out     : out std_logic_vector(11 downto 0)
+    SPI_MISO     : in std_logic;     
+    SPI_MOSI     : out std_logic;
+		SPI_SCK      : out std_logic;
+		DAC_CS       : out std_logic;
+		DAC_CLR      : out std_logic;
+    SPI_SS_B     : out std_logic;
+    AMP_CS       : out std_logic;
+    AD_CONV      : out std_logic;
+    FPGA_INIT_B  : out std_logic
+
   );
 end synth_controller;
 
@@ -47,15 +56,15 @@ architecture Behavioral of synth_controller is
   end component;
   
   component wave_mixer
-	port(
+  port(
     ctrl     : in std_logic_vector(3 downto 0);
     wave_1   : in std_logic_vector(9 downto 0);
     wave_2   : in std_logic_vector(9 downto 0);
     wave_3   : in std_logic_vector(9 downto 0);
     wave_4   : in std_logic_vector(9 downto 0);          
     wave_out : out std_logic_vector(11 downto 0)
-    );
-	end component;
+  );
+  end component;
   
   component rotatory_encoder
   port(
@@ -68,10 +77,30 @@ architecture Behavioral of synth_controller is
   );
   end component;
   
-  signal wave_1 : std_logic_vector(9 downto 0);
-  signal wave_2 : std_logic_vector(9 downto 0);
-  signal wave_3 : std_logic_vector(9 downto 0);
-  signal wave_4 : std_logic_vector(9 downto 0); 
+  component dac_interface
+  port(
+		SPI_MISO  : in std_logic;
+		data_in   : in std_logic_vector(11 downto 0);
+		comm      : in std_logic_vector(3 downto 0);
+		addr      : in std_logic_vector(3 downto 0);
+		reset     : in std_logic;
+		CLK       : in std_logic;          
+		SPI_MOSI  : out std_logic;
+		SPI_SCK   : out std_logic;
+		DAC_CS    : out std_logic;
+		DAC_CLR   : out std_logic;
+		shift_in  : out std_logic_vector(23 downto 0);
+		shift_out : out std_logic_vector(23 downto 0);
+		state_v   : out std_logic_vector(7 downto 0)
+  );
+	end component;
+
+
+  signal wave_1   : std_logic_vector(9 downto 0);
+  signal wave_2   : std_logic_vector(9 downto 0);
+  signal wave_3   : std_logic_vector(9 downto 0);
+  signal wave_4   : std_logic_vector(9 downto 0); 
+  signal wave_out : std_logic_vector(11 downto 0);
   
   signal rot_enc_direction : std_logic;
   signal rot_enc_count     : std_logic;
@@ -97,13 +126,24 @@ architecture Behavioral of synth_controller is
   signal wave_sel2     : unsigned(1 downto 0);
   signal wave_sel3     : unsigned(1 downto 0);
   signal wave_sel4     : unsigned(1 downto 0);
-
-  signal wave_1 : std_logic_vector(9 downto 0);
-  signal wave_2 : std_logic_vector(9 downto 0);
-  signal wave_3 : std_logic_vector(9 downto 0);
-  signal wave_4 : std_logic_vector(9 downto 0);
+  
+  signal reset : std_logic;
+  
+  signal prescaler : unsigned(23 downto 0);
+  signal clk_div   : std_logic;
+  
+  signal shift_in  : std_logic_vector(23 downto 0);
+  signal shift_out : std_logic_vector(23 downto 0);
 
 begin
+
+  reset <= not sw(0);
+  
+  -- SPI Config
+  SPI_SS_B    <= '1';
+  AMP_CS      <= '1';
+  AD_CONV     <= '0';
+  FPGA_INIT_B <= '0';
 
   -- State machine logic
   process(clk, reset)
@@ -156,88 +196,101 @@ begin
     if(reset = '1') then
       note_sel <= (others => '0'); 
     elsif(clk'event and clk='1') then
-      button_east_prev <= button_east;
-    
-      if(button_east = '1' and button_east_prev ='0') then
-        
-        if(rot_enc_count = '1' and rot_enc_direction = '1') then
-          note_sel <= note_sel + 1;
-        elsif(rot_enc_count = '1' and rot_enc_direction = '0') then
-          note_sel <= note_sel - 1;
-        end if; 
-      
-      end if;
+
+      if(rot_enc_count = '1' and rot_enc_direction = '1') then
+        note_sel <= note_sel + 1;
+      elsif(rot_enc_count = '1' and rot_enc_direction = '0') then
+        note_sel <= note_sel - 1;
+      end if; 
       
     end if;
   end process;  
 
-  process(state, note_sel, wave_sel,
+  process(reset, state, note_sel, wave_sel,
     note_sel1, note_sel2, note_sel3, note_sel4,
     wave_sel1, wave_sel2, wave_sel3, wave_sel4)
   begin
-    case state is
-      when voice_1 =>
-      
-        note_sel1 <= note_sel;
-        note_sel2 <= note_sel2;
-        note_sel3 <= note_sel3;
-        note_sel4 <= note_sel4;
+    
+    if(reset = '1') then
+      note_sel1 <= (others => '0');
+      note_sel2 <= (others => '0');
+      note_sel3 <= (others => '0');
+      note_sel4 <= (others => '0');
         
-        wave_sel1 <= wave_sel;
-        wave_sel2 <= wave_sel2;
-        wave_sel3 <= wave_sel3;
-        wave_sel4 <= wave_sel4;
+      wave_sel1 <= (others => '0');
+      wave_sel2 <= (others => '0');
+      wave_sel3 <= (others => '0');
+      wave_sel4 <= (others => '0');
+    
+    else
+  
+      case state is
+        when voice_1 =>
         
-      when voice_2 =>
-      
-        note_sel1 <= note_sel1;
-        note_sel2 <= note_sel;
-        note_sel3 <= note_sel3;
-        note_sel4 <= note_sel4;
+          note_sel1 <= note_sel;
+          note_sel2 <= note_sel2;
+          note_sel3 <= note_sel3;
+          note_sel4 <= note_sel4;
+          
+          wave_sel1 <= wave_sel;
+          wave_sel2 <= wave_sel2;
+          wave_sel3 <= wave_sel3;
+          wave_sel4 <= wave_sel4;
+          
+        when voice_2 =>
         
-        wave_sel1 <= wave_sel1;
-        wave_sel2 <= wave_sel;
-        wave_sel3 <= wave_sel3;
-        wave_sel4 <= wave_sel4;
+          note_sel1 <= note_sel1;
+          note_sel2 <= note_sel;
+          note_sel3 <= note_sel3;
+          note_sel4 <= note_sel4;
+          
+          wave_sel1 <= wave_sel1;
+          wave_sel2 <= wave_sel;
+          wave_sel3 <= wave_sel3;
+          wave_sel4 <= wave_sel4;
+          
+        when voice_3 =>
         
-      when voice_3 =>
-      
-        note_sel1 <= note_sel1;
-        note_sel2 <= note_sel2;
-        note_sel3 <= note_sel;
-        note_sel4 <= note_sel4;
+          note_sel1 <= note_sel1;
+          note_sel2 <= note_sel2;
+          note_sel3 <= note_sel;
+          note_sel4 <= note_sel4;
+          
+          wave_sel1 <= wave_sel1;
+          wave_sel2 <= wave_sel2;
+          wave_sel3 <= wave_sel;
+          wave_sel4 <= wave_sel4;
         
-        wave_sel1 <= wave_sel1;
-        wave_sel2 <= wave_sel2;
-        wave_sel3 <= wave_sel;
-        wave_sel4 <= wave_sel4;
-      
-      when voice_4 =>
-      
-        note_sel1 <= note_sel1;
-        note_sel2 <= note_sel2;
-        note_sel3 <= note_sel3;
-        note_sel4 <= note_sel;
+        when voice_4 =>
         
-        wave_sel1 <= wave_sel1;
-        wave_sel2 <= wave_sel2;
-        wave_sel3 <= wave_sel3;
-        wave_sel4 <= wave_sel;
-      
-      when others =>
-      
-        note_sel1 <= note_sel1;
-        note_sel2 <= note_sel2;
-        note_sel3 <= note_sel3;
-        note_sel4 <= note_sel4;
+          note_sel1 <= note_sel1;
+          note_sel2 <= note_sel2;
+          note_sel3 <= note_sel3;
+          note_sel4 <= note_sel;
+          
+          wave_sel1 <= wave_sel1;
+          wave_sel2 <= wave_sel2;
+          wave_sel3 <= wave_sel3;
+          wave_sel4 <= wave_sel;
         
-        wave_sel1 <= wave_sel1;
-        wave_sel2 <= wave_sel2;
-        wave_sel3 <= wave_sel3;
-        wave_sel4 <= wave_sel4;
+        when others =>
         
-    end case;
+          note_sel1 <= note_sel1;
+          note_sel2 <= note_sel2;
+          note_sel3 <= note_sel3;
+          note_sel4 <= note_sel4;
+          
+          wave_sel1 <= wave_sel1;
+          wave_sel2 <= wave_sel2;
+          wave_sel3 <= wave_sel3;
+          wave_sel4 <= wave_sel4;
+          
+      end case;
+    
+    end if;
   end process;
+  
+  
   
   Inst_voice_unit_1 : voice_unit
   port map(
@@ -277,7 +330,7 @@ begin
   
   Inst_wave_mixer: wave_mixer 
   port map(
-    ctrl     => sw,
+    ctrl     => SW,
     wave_1   => wave_1,
     wave_2   => wave_2,
     wave_3   => wave_3,
@@ -294,6 +347,22 @@ begin
     direction => rot_enc_direction,
     count     => rot_enc_count
 	);
+
+  Inst_dac_interface: dac_interface 
+  port map(
+    data_in   => wave_out,
+    comm      => "0011",
+    addr      => "1111",
+    reset     => reset,
+    CLK       => clk,
+    SPI_MOSI  => SPI_MOSI,
+    SPI_SCK   => SPI_SCK,
+    DAC_CS    => DAC_CS,
+    DAC_CLR   => DAC_CLR,
+    SPI_MISO  => SPI_MISO,
+    shift_in  => shift_in,
+    shift_out => shift_out
+  );
 
   
 end Behavioral;

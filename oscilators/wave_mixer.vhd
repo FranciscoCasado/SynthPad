@@ -66,6 +66,6 @@ begin
   u3 <= "00"&unsigned(e3);
   u4 <= "00"&unsigned(e4);
 	 
-  sum <= u1 + u2 + u3 + u4;--to_unsigned(e1,12)-- + to_unsigned(e2,12) + to_unsigned(e3,12) + to_unsigned(e4,12);
+  sum <= u1 + u2 + u3 + u4;
 end Behavioral;
 
