@@ -47,7 +47,7 @@ begin
 end process;
 
 -- State Machine
-process(state_reg, sample_reg, n_reg, byte_reg, sample_tick)
+process(state_reg, sample_reg, n_reg, byte_reg, sample_tick, rx)
 begin
   -- Update variables
   state_next <= state_reg;
