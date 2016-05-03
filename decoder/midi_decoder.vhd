@@ -162,7 +162,7 @@ begin
       wave_sel3 <= "00";
       note_sel4 <= "000";
       wave_sel4 <= "00";
-    elsif(clk'event and instruction_tick = '1') then
+    elsif(clk'event and clk = '1' and instruction_tick = '1') then
       status_out <= status_byte;
       wave_ctrl <= wave_ctrl_b;
       note_sel1 <= note_sel1_b;
