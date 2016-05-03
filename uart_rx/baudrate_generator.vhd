@@ -23,8 +23,8 @@ use ieee.numeric_std.all;
 
 entity baudrate_generator is
   generic(
-    N : integer := 8;
-    M : integer := 163
+    M : integer := 100; -- # of clock periods needed to oversample at 16 times
+    N : integer := 8		-- 
   );
   port(
     clk : in std_logic;
@@ -49,8 +49,7 @@ begin
     end if;
   end process;
 
-  --r_next <= (others => '0') when r_reg = (M-1) else (r_reg + '1');
-  
+  -- next state logic  
   process(r_reg)
   begin
     if(r_reg = M-1) then
@@ -63,4 +62,3 @@ begin
   tick <= '1' when r_reg = (M-1) else '0';
 
 end Behavioral;
-

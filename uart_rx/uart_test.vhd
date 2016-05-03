@@ -44,7 +44,7 @@ architecture behavior of uart_test is
     clk          : in  std_logic;
     reset        : in  std_logic;
     rx           : in  std_logic;
-    s_tick       : in  std_logic;
+    sample_tick       : in  std_logic;
     rx_done_tick : out  std_logic;
     dout         : out  std_logic_vector(7 downto 0)
   );
@@ -62,7 +62,7 @@ architecture behavior of uart_test is
    signal clk    : std_logic := '0';
    signal reset  : std_logic := '0';
    signal rx     : std_logic := '0';
-   signal s_tick : std_logic := '0';
+   signal sample_tick : std_logic := '0';
 
  	--Outputs
    signal rx_done_tick : std_logic;
@@ -79,7 +79,7 @@ begin
   PORT MAP(
     clk  => clk,
     rst  => reset, 
-    tick => s_tick
+    tick => sample_tick
 	);
   
   uut: uart_rx 
@@ -87,7 +87,7 @@ begin
     clk          => clk,
     reset        => reset,
     rx           => rx,
-    s_tick       => s_tick,
+    sample_tick  => sample_tick,
     rx_done_tick => rx_done_tick,
     dout         => dout
   );
@@ -106,12 +106,13 @@ begin
   stim_proc: process
   begin		
     -- hold reset state for 100 ns.
-    wait for 100 ns;	
     reset <= '1';
     rx <= '1';
+    wait for 10 us;	
     wait for clk_period*10;
     reset <= '0';
-    -- insert stimulus here 
+	 wait for clk_period*500;
+    -- First Byte
     wait for clk_period*1600; rx <= '0'; -- start
     wait for clk_period*1600; rx <= '1'; -- LSB
     wait for clk_period*1600; rx <= '0';
@@ -120,6 +121,32 @@ begin
     wait for clk_period*1600; rx <= '1';
     wait for clk_period*1600; rx <= '0';
     wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '0'; -- MSB
+    wait for clk_period*1600; rx <= '1'; -- stop
+    -- pause
+	 wait for clk_period*2050;
+    -- Second Byte
+    wait for clk_period*1600; rx <= '0'; -- start
+    wait for clk_period*1600; rx <= '1'; -- LSB
+    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '1';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0'; -- MSB
+    wait for clk_period*1600; rx <= '1'; -- stop
+	 --pause
+	 wait for clk_period*10;
+    -- Third Byte
+    wait for clk_period*1600; rx <= '0'; -- start
+    wait for clk_period*1600; rx <= '1'; -- LSB
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
+    wait for clk_period*1600; rx <= '0';
     wait for clk_period*1600; rx <= '0'; -- MSB
     wait for clk_period*1600; rx <= '1'; -- stop
     wait;

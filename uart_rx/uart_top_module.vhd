@@ -34,39 +34,56 @@ entity uart_top_module is
     clk   : in  std_logic;
     reset : in  std_logic;
     rx    : in  std_logic;
-    LED   : out std_logic_vector(7 downto 0)
+    LED   : out std_logic_vector(7 downto 0);
+	 TICK  : out std_logic;
+	 RX_DONE : out std_logic
   );
 end uart_top_module;
 
 architecture Behavioral of uart_top_module is
 
- component uart_rx
+-- Declare components
+  component uart_rx
   port(
     clk          : in   std_logic;
     reset        : in   std_logic;
     rx           : in   std_logic;
-    s_tick       : in   std_logic;
+    sample_tick  : in   std_logic;
     rx_done_tick : out  std_logic;
-    dout         : out  std_logic_vector(7 downto 0);
-    debug_state  : out  std_logic_vector(7 downto 0)
+    dout         : out  std_logic_vector(7 downto 0)
   );
   end component;
     
   component baudrate_generator
-	port(
+  port(
     clk  : in  std_logic;
     rst  : in  std_logic;          
     tick : out std_logic
     );
   end component;
   
+  component dout_reg
+  port(
+    dout    : in  STD_LOGIC_VECTOR (7 downto 0);
+    rx_done : in  STD_LOGIC;
+    data    : out  STD_LOGIC_VECTOR (7 downto 0);
+	 reset   : in std_logic
+    );
+  end component;
+  
+  
+-- Declare signals
   signal s_tick : std_logic;
   signal rx_done_tick : std_logic;
   
   signal uart_out : std_logic_vector(7 downto 0);
+  signal data_out : std_logic_vector(7 downto 0);
   
   signal state : std_logic;
   signal counter : unsigned(26 downto 0);
+
+
+-- Processes and Instantiation
 begin
 
   process(clk,reset)
@@ -85,12 +102,14 @@ begin
           state <= '1';
         end if;
       
-        LED <= rx&s_tick&rx_done_tick&uart_out(4 downto 0);
+        LED <= data_out(7 downto 0);
+        TICK  <= s_tick;
+		  RX_DONE <= rx_done_tick;
       end if;
       
     end if;
   end process;
-
+  
   Inst_baudrate_generator: baudrate_generator 
   PORT MAP(
     clk  => clk,
@@ -99,15 +118,21 @@ begin
 	);
   
   Inst_uart_rx : uart_rx 
-  port map (
+  port map(
     clk          => clk,
     reset        => reset,
     rx           => rx,
-    s_tick       => s_tick,
+    sample_tick  => s_tick,
     rx_done_tick => rx_done_tick,
-    dout         => uart_out,
-    debug_state  => 
+    dout         => uart_out
+  );
+  
+  Inst_dout_reg: dout_reg
+  port map(
+    dout    => uart_out,
+	 rx_done => rx_done_tick,
+	 data    => data_out,
+	 reset   => reset
   );
 
 end Behavioral;
-
