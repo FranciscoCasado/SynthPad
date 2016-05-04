@@ -31,20 +31,21 @@ use ieee.std_logic_1164.all;
 
 entity midi_decoder is
   port( 
-      clk       : in  std_logic;
-      reset     : in  std_logic;
-      byte_in   : in  std_logic_vector(7 downto 0);
-      tick      : in  std_logic;
-      wave_ctrl : out std_logic_vector(3 downto 0);
-      note_sel1 : out std_logic_vector(2 downto 0);
-      wave_sel1 : out std_logic_vector(1 downto 0);
-      note_sel2 : out std_logic_vector(2 downto 0);
-      wave_sel2 : out std_logic_vector(1 downto 0);
-      note_sel3 : out std_logic_vector(2 downto 0);
-      wave_sel3 : out std_logic_vector(1 downto 0);
-      note_sel4 : out std_logic_vector(2 downto 0);
-      wave_sel4 : out std_logic_vector(1 downto 0);
-      status_out : out std_logic_vector(7 downto 0));
+    clk       : in  std_logic;
+    reset     : in  std_logic;
+    byte_in   : in  std_logic_vector(7 downto 0);
+    tick      : in  std_logic;
+    wave_ctrl : out std_logic_vector(3 downto 0);
+    note_sel1 : out std_logic_vector(2 downto 0);
+    wave_sel1 : out std_logic_vector(1 downto 0);
+    note_sel2 : out std_logic_vector(2 downto 0);
+    wave_sel2 : out std_logic_vector(1 downto 0);
+    note_sel3 : out std_logic_vector(2 downto 0);
+    wave_sel3 : out std_logic_vector(1 downto 0);
+    note_sel4 : out std_logic_vector(2 downto 0);
+    wave_sel4 : out std_logic_vector(1 downto 0);
+    status_out : out std_logic_vector(7 downto 0)
+  );
 end midi_decoder;
 
 architecture Behavioral of midi_decoder is
@@ -163,7 +164,7 @@ begin
       note_sel4 <= "000";
       wave_sel4 <= "00";
     elsif(clk'event and clk = '1' and instruction_tick = '1') then
-      status_out <= status_byte;
+      status_out <= data1_byte;
       wave_ctrl <= wave_ctrl_b;
       note_sel1 <= note_sel1_b;
       wave_sel1 <= wave_sel1_b;
