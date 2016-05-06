@@ -30,7 +30,7 @@ entity voice_unit is
   port( 
     clk      : in  std_logic;
     reset    : in  std_logic;
-    note_sel : in  std_logic_vector(2 downto 0);
+    note_sel : in  std_logic_vector(6 downto 0);
     wave_sel : in  std_logic_vector(1 downto 0);
     wave_out : out std_logic_vector(9 downto 0));
 end voice_unit;
@@ -42,7 +42,7 @@ architecture Behavioral of voice_unit is
   port(
     clk       : in  std_logic;
     reset     : in  std_logic;
-    note_sel  : in  std_logic_vector(2 downto 0);
+    note_sel  : in  std_logic_vector(6 downto 0);
     note_tick : out std_logic
   );
   end component;
@@ -94,10 +94,10 @@ begin
 
   -- Wave selection
   wave_out <= 
-    wave_square when wave_sel = "00" else 
-    wave_tri    when wave_sel = "01" else
-    wave_saw    when wave_sel = "10" else
-    wave_sine   when wave_sel = "11";
+  wave_square when wave_sel = "00" else 
+  wave_tri    when wave_sel = "01" else
+  wave_saw    when wave_sel = "10" else
+  wave_sine   when wave_sel = "11";
 
   -- Instantiation
   Inst_note_generator: note_generator 

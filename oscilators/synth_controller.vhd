@@ -49,7 +49,7 @@ architecture Behavioral of synth_controller is
   port(
     clk      : in  std_logic;
     reset    : in  std_logic;
-    note_sel : in  std_logic_vector(2 downto 0);
+    note_sel : in  std_logic_vector(6 downto 0);
     wave_sel : in  std_logic_vector(1 downto 0);          
     wave_out : out std_logic_vector(9 downto 0)
   );
@@ -114,11 +114,11 @@ architecture Behavioral of synth_controller is
   signal button_north_prev : std_logic;
   signal button_east_prev  : std_logic;
   
-  signal note_sel  : unsigned(2 downto 0);
-  signal note_sel1 : unsigned(2 downto 0);
-  signal note_sel2 : unsigned(2 downto 0);
-  signal note_sel3 : unsigned(2 downto 0);
-  signal note_sel4 : unsigned(2 downto 0);
+  signal note_sel  : unsigned(6 downto 0);
+  signal note_sel1 : unsigned(6 downto 0);
+  signal note_sel2 : unsigned(6 downto 0);
+  signal note_sel3 : unsigned(6 downto 0);
+  signal note_sel4 : unsigned(6 downto 0);
   
   signal wave_sel      : unsigned(1 downto 0);
   signal wave_sel_next : unsigned(1 downto 0);

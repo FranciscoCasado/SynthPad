@@ -36,13 +36,13 @@ entity midi_decoder is
     byte_in   : in  std_logic_vector(7 downto 0);
     tick      : in  std_logic;
     wave_ctrl : out std_logic_vector(3 downto 0);
-    note_sel1 : out std_logic_vector(2 downto 0);
+    note_sel1 : out std_logic_vector(6 downto 0);
     wave_sel1 : out std_logic_vector(1 downto 0);
-    note_sel2 : out std_logic_vector(2 downto 0);
+    note_sel2 : out std_logic_vector(6 downto 0);
     wave_sel2 : out std_logic_vector(1 downto 0);
-    note_sel3 : out std_logic_vector(2 downto 0);
+    note_sel3 : out std_logic_vector(6 downto 0);
     wave_sel3 : out std_logic_vector(1 downto 0);
-    note_sel4 : out std_logic_vector(2 downto 0);
+    note_sel4 : out std_logic_vector(6 downto 0);
     wave_sel4 : out std_logic_vector(1 downto 0);
     status_out : out std_logic_vector(7 downto 0)
   );
@@ -56,32 +56,85 @@ type byte_state is (
   
   signal state, state_next : byte_state;
 
-  signal status_byte : std_logic_vector(7 downto 0);
-  signal data1_byte  : std_logic_vector(7 downto 0);
-  signal data2_byte  : std_logic_vector(7 downto 0);
+  signal status_byte : std_logic_vector(6 downto 0);
+  signal data1_byte  : std_logic_vector(6 downto 0);
+  signal data2_byte  : std_logic_vector(6 downto 0);
   
   signal is_byte_2 : std_logic;
   
-  signal status_msb4 : std_logic_vector(3 downto 0);
+  signal status_msb4 : std_logic_vector(2 downto 0);
   
   signal wave_ctrl_b : std_logic_vector(3 downto 0);
-  signal note_sel1_b : std_logic_vector(2 downto 0);
+  signal note_sel1_b : std_logic_vector(6 downto 0);
   signal wave_sel1_b : std_logic_vector(1 downto 0);
-  signal note_sel2_b : std_logic_vector(2 downto 0);
+  signal note_sel2_b : std_logic_vector(6 downto 0);
   signal wave_sel2_b : std_logic_vector(1 downto 0);
-  signal note_sel3_b : std_logic_vector(2 downto 0);
+  signal note_sel3_b : std_logic_vector(6 downto 0);
   signal wave_sel3_b : std_logic_vector(1 downto 0);
-  signal note_sel4_b : std_logic_vector(2 downto 0);
+  signal note_sel4_b : std_logic_vector(6 downto 0);
   signal wave_sel4_b : std_logic_vector(1 downto 0);
   
   signal instruction_tick : std_logic;
+  signal channel_message : std_logic;
+  
+  signal device_channel : std_logic_vector(3 downto 0) := "0000"; -- Our Device is set to listen to channel 0 !
+  signal note     : std_logic_vector(6 downto 0);
+  signal note_on  : std_logic;
+  signal note_off : std_logic;
   
   -- Para los multiplicadores de la fpga.
   -- usar shift a la izq, multiplicar y tomar solo los MSB
   
+  signal debug : std_logic;
+  
 begin
 
-  status_msb4 <= status_byte(7 downto 4);
+  -- Decoding
+
+  status_msb4 <= status_byte(6 downto 4);
+  note <= data1_byte(6 downto 0);
+  
+  with status_msb4 select	is_byte_2 <= 
+    '0' when "101",
+    '0' when "100",
+    '1' when others;
+
+  -- Estas deben ser modificadas
+  wave_ctrl <= wave_ctrl_b;
+  note_sel1 <= note_sel1_b;
+  wave_sel1 <= wave_sel1_b;
+  note_sel2 <= note_sel2_b;
+  wave_sel2 <= wave_sel2_b;
+  note_sel3 <= note_sel3_b;
+  wave_sel3 <= wave_sel3_b;
+  note_sel4 <= note_sel4_b;
+  wave_sel4 <= wave_sel4_b;
+  
+  process(state, tick)
+  begin
+    if(state = status and tick = '1') then
+      instruction_tick <= '1';
+    else
+      instruction_tick <= '0';
+    end if;
+  end process;
+  
+  with status_byte(6 downto 4) select	
+    channel_message <= 
+      '0' when "111",
+      '1' when others;
+      
+  with status_byte(6 downto 4) select
+    note_on <=
+      '1' when "001",
+      '0' when others;
+      
+  with status_byte(6 downto 4) select
+    note_off <=
+      '1' when "000",
+      '0' when others;
+      
+  
 
   -- State machine logic
   process(clk, reset)
@@ -103,21 +156,21 @@ begin
   process(clk, reset) -- Poner tambien condiciones de next state
   begin
     if(reset = '1') then
-      status_byte <= "00000000";
-      data1_byte <= "00000000";
-      data2_byte <= "00000000";
+      status_byte <= "0000000";
+      data1_byte  <= "0000000";
+      data2_byte  <= "0000000";
     elsif(clk'event and clk='1') then
       if(tick = '1') then
           if(byte_in(7) = '1') then -- Recover from errors... if MSB is 1 then is a STATUS byte !
-            status_byte <= byte_in;
+            status_byte <= byte_in(6 downto 0);
           elsif(state = status) then
-            status_byte <= byte_in;
+            status_byte <= byte_in(6 downto 0);
           elsif(state = data1) then
-            data1_byte <= byte_in;
+            data1_byte <= byte_in(6 downto 0);
           elsif(state = data2) then
-            data2_byte <= byte_in;
+            data2_byte <= byte_in(6 downto 0);
           else
-            status_byte <= byte_in;
+            status_byte <= byte_in(6 downto 0);
           end if;
       end if;
     end if;
@@ -141,68 +194,59 @@ begin
       state_next <= status;
     end if;
   end process;
-  
-  -- Decoding
-
-  
-  with status_msb4 select	is_byte_2 <= 
-    '0' when "1101",
-    '0' when "1100",
-    '1' when others;
       
   -- Sequential Output
-  process(clk, reset)
+  process(clk, reset, instruction_tick)
   begin
     if(reset = '1') then
-      wave_ctrl <= "0000";
-      note_sel1 <= "000";
-      wave_sel1 <= "00";
-      note_sel2 <= "000";
-      wave_sel2 <= "00";
-      note_sel3 <= "000";
-      wave_sel3 <= "00";
-      note_sel4 <= "000";
-      wave_sel4 <= "00";
+      wave_ctrl_b <= "0000";
+      note_sel1_b <= "0000000";
+      wave_sel1_b <= "00";
+      note_sel2_b <= "0000000";
+      wave_sel2_b <= "00";
+      note_sel3_b <= "0000000";
+      wave_sel3_b <= "00";
+      note_sel4_b <= "0000000";
+      wave_sel4_b <= "00";
     elsif(clk'event and clk = '1' and instruction_tick = '1') then
-      status_out <= data1_byte;
-      wave_ctrl <= wave_ctrl_b;
-      note_sel1 <= note_sel1_b;
-      wave_sel1 <= wave_sel1_b;
-      note_sel2 <= note_sel2_b;
-      wave_sel2 <= wave_sel2_b;
-      note_sel3 <= note_sel3_b;
-      wave_sel3 <= wave_sel3_b;
-      note_sel4 <= note_sel4_b;
-      wave_sel4 <= wave_sel4_b;
+    
+      if(channel_message = '1') then
+        if(note_on = '1') then
+          debug <= '1';
+          if(wave_ctrl_b(0) = '0') then
+            wave_ctrl_b(0) <= '1';
+            note_sel1_b    <= note;
+          elsif(wave_ctrl_b(1) = '0') then
+            wave_ctrl_b(1) <= '1';
+            note_sel2_b    <= note;
+          elsif(wave_ctrl_b(2) = '0') then
+            wave_ctrl_b(2) <= '1';
+            note_sel3_b    <= note;
+          elsif(wave_ctrl_b(3) = '0') then
+            wave_ctrl_b(3) <= '1';
+            note_sel4_b    <= note;
+          end if;            
+        elsif(note_off = '1') then
+          debug <= '1';
+          if(note_sel1_b = note) then
+            wave_ctrl_b(0) <= '0';
+          elsif(note_sel2_b = note) then
+            wave_ctrl_b(1) <= '0';
+          elsif(note_sel3_b = note) then
+            wave_ctrl_b(2) <= '0';
+          elsif(note_sel4_b = note) then
+            wave_ctrl_b(3) <= '0';
+          end if;  
+        else
+          debug <= '0';
+        end if;
+      end if;
     end if;
   end process;
   
---  process(clk, reset)
---  begin
---    if(reset = '1') then
---      
---  
---  end process;
 
-  process(state, tick)
-  begin
-    if(state = status and tick = '1') then
-      instruction_tick <= '1';
-    else
-      instruction_tick <= '0';
-    end if;
-  end process;
-  
-  wave_ctrl_b <= status_byte(3 downto 0);
-  note_sel1_b <= status_byte(2 downto 0);
-  wave_sel1_b <= status_byte(1 downto 0);
-  note_sel2_b <= status_byte(2 downto 0);
-  wave_sel2_b <= status_byte(1 downto 0);
-  note_sel3_b <= status_byte(2 downto 0);
-  wave_sel3_b <= status_byte(1 downto 0);
-  note_sel4_b <= status_byte(2 downto 0);
-  wave_sel4_b <= status_byte(1 downto 0);
- 
+
+
       
 end Behavioral;
 

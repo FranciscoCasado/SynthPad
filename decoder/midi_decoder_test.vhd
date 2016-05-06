@@ -46,13 +46,13 @@ architecture behavior of midi_decoder_test is
     byte_in   : in  std_logic_vector(7 downto 0);
     tick      : in  std_logic;
     wave_ctrl : out std_logic_vector(3 downto 0);
-    note_sel1 : out std_logic_vector(2 downto 0);
+    note_sel1 : out std_logic_vector(6 downto 0);
     wave_sel1 : out std_logic_vector(1 downto 0);
-    note_sel2 : out std_logic_vector(2 downto 0);
+    note_sel2 : out std_logic_vector(6 downto 0);
     wave_sel2 : out std_logic_vector(1 downto 0);
-    note_sel3 : out std_logic_vector(2 downto 0);
+    note_sel3 : out std_logic_vector(6 downto 0);
     wave_sel3 : out std_logic_vector(1 downto 0);
-    note_sel4 : out std_logic_vector(2 downto 0);
+    note_sel4 : out std_logic_vector(6 downto 0);
     wave_sel4 : out std_logic_vector(1 downto 0)
   );
   end component;
@@ -66,13 +66,13 @@ architecture behavior of midi_decoder_test is
 
  	--Outputs
    signal wave_ctrl : std_logic_vector(3 downto 0);
-   signal note_sel1 : std_logic_vector(2 downto 0);
+   signal note_sel1 : std_logic_vector(6 downto 0);
    signal wave_sel1 : std_logic_vector(1 downto 0);
-   signal note_sel2 : std_logic_vector(2 downto 0);
+   signal note_sel2 : std_logic_vector(6 downto 0);
    signal wave_sel2 : std_logic_vector(1 downto 0);
-   signal note_sel3 : std_logic_vector(2 downto 0);
+   signal note_sel3 : std_logic_vector(6 downto 0);
    signal wave_sel3 : std_logic_vector(1 downto 0);
-   signal note_sel4 : std_logic_vector(2 downto 0);
+   signal note_sel4 : std_logic_vector(6 downto 0);
    signal wave_sel4 : std_logic_vector(1 downto 0);
 
    -- Clock period definitions
@@ -119,21 +119,21 @@ BEGIN
     
     -- Fist Message - 3 bytes
     tick <= '1';
-    byte_in <= "11111111";
+    byte_in <= "10010000";
     wait for clk_period;
     
     tick <= '0';
     wait for clk_period;
     
     tick <= '1';
-    byte_in <= "00000000";
+    byte_in <= "01111111";
     wait for clk_period;
     
     tick <= '0';
     wait for clk_period;
     
     tick <= '1';
-    byte_in <= "00001111";
+    byte_in <= "01010101";
     wait for clk_period;
     
     tick <= '0';
@@ -142,18 +142,25 @@ BEGIN
     
     -- Second Message - 2 bytes
     tick <= '1';
-    byte_in <= "11001110";
+    byte_in <= "10010000";
     wait for clk_period;
     
     tick <= '0';
     wait for clk_period;
     
     tick <= '1';
-    byte_in <= "00001111";
+    byte_in <= "01110000";
     wait for clk_period;
     
     tick <= '0';
     wait for clk_period;
+    
+    tick <= '1';
+    byte_in <= "00101010";
+    wait for clk_period;
+    
+    tick <= '0';
+    wait for clk_period*10;
     
 
     --wait for clk_period;
@@ -166,14 +173,7 @@ BEGIN
     
     -- Fist Message - 3 bytes
     tick <= '1';
-    byte_in <= "11111111";
-    wait for clk_period;
-    
-    tick <= '0';
-    wait for clk_period;
-    
-    tick <= '1';
-    byte_in <= "00000000";
+    byte_in <= "10000000";
     wait for clk_period;
     
     tick <= '0';
@@ -181,6 +181,13 @@ BEGIN
     
     tick <= '1';
     byte_in <= "01111111";
+    wait for clk_period;
+    
+    tick <= '0';
+    wait for clk_period;
+    
+    tick <= '1';
+    byte_in <= "00000000";
     wait for clk_period;
     
     tick <= '0';
