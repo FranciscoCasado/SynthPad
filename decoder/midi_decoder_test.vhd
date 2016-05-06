@@ -53,7 +53,8 @@ architecture behavior of midi_decoder_test is
     note_sel3 : out std_logic_vector(6 downto 0);
     wave_sel3 : out std_logic_vector(1 downto 0);
     note_sel4 : out std_logic_vector(6 downto 0);
-    wave_sel4 : out std_logic_vector(1 downto 0)
+    wave_sel4 : out std_logic_vector(1 downto 0);
+    status_out : out std_logic_vector(7 downto 0)
   );
   end component;
     
@@ -74,6 +75,8 @@ architecture behavior of midi_decoder_test is
    signal wave_sel3 : std_logic_vector(1 downto 0);
    signal note_sel4 : std_logic_vector(6 downto 0);
    signal wave_sel4 : std_logic_vector(1 downto 0);
+   
+   signal status_out : std_logic_vector(7 downto 0);
 
    -- Clock period definitions
    constant clk_period : time := 10 ns;
@@ -95,7 +98,8 @@ BEGIN
     note_sel3 => note_sel3,
     wave_sel3 => wave_sel3,
     note_sel4 => note_sel4,
-    wave_sel4 => wave_sel4
+    wave_sel4 => wave_sel4,
+    status_out => status_out
   );
 
   -- Clock process definitions

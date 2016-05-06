@@ -54,7 +54,7 @@ type byte_state is (
     idle, status, data1, data2 -- Meaning NEXT byte should be ...
   );
   
-  signal state, state_next : byte_state;
+  signal prev_state, state, state_next : byte_state;
 
   signal status_byte : std_logic_vector(6 downto 0);
   signal data1_byte  : std_logic_vector(6 downto 0);
@@ -86,13 +86,18 @@ type byte_state is (
   -- usar shift a la izq, multiplicar y tomar solo los MSB
   
   signal debug : std_logic;
-  
+  signal done : std_logic;
+  signal prev_intruction_tick : std_logic;
+  signal update_tick : std_logic;
 begin
 
   -- Decoding
 
   status_msb4 <= status_byte(6 downto 4);
   note <= data1_byte(6 downto 0);
+  
+  status_out <= note_on&note_off&"00"&wave_ctrl_b;
+  
   
   with status_msb4 select	is_byte_2 <= 
     '0' when "101",
@@ -116,6 +121,22 @@ begin
       instruction_tick <= '1';
     else
       instruction_tick <= '0';
+    end if;
+  end process;
+  
+  process(clk)
+  begin
+    if(clk'event and clk = '1') then
+      prev_intruction_tick <= instruction_tick;
+    end if;
+  end process;
+  
+  process(state, prev_state)
+  begin
+    if(state = status and prev_state = data2) then
+      update_tick <= '1';
+    else
+      update_tick <= '0';
     end if;
   end process;
   
@@ -147,6 +168,7 @@ begin
             state <= data1;
           else
             state <= state_next;
+            prev_state <= state;
           end if;  
         end if;
     end if;
@@ -208,38 +230,50 @@ begin
       wave_sel3_b <= "00";
       note_sel4_b <= "0000000";
       wave_sel4_b <= "00";
-    elsif(clk'event and clk = '1' and instruction_tick = '1') then
+      done <= '0';
+    elsif(clk'event and clk = '1') then --signal debug : std_logic;
     
-      if(channel_message = '1') then
-        if(note_on = '1') then
-          debug <= '1';
-          if(wave_ctrl_b(0) = '0') then
-            wave_ctrl_b(0) <= '1';
-            note_sel1_b    <= note;
-          elsif(wave_ctrl_b(1) = '0') then
-            wave_ctrl_b(1) <= '1';
-            note_sel2_b    <= note;
-          elsif(wave_ctrl_b(2) = '0') then
-            wave_ctrl_b(2) <= '1';
-            note_sel3_b    <= note;
-          elsif(wave_ctrl_b(3) = '0') then
-            wave_ctrl_b(3) <= '1';
-            note_sel4_b    <= note;
-          end if;            
-        elsif(note_off = '1') then
-          debug <= '1';
-          if(note_sel1_b = note) then
-            wave_ctrl_b(0) <= '0';
-          elsif(note_sel2_b = note) then
-            wave_ctrl_b(1) <= '0';
-          elsif(note_sel3_b = note) then
-            wave_ctrl_b(2) <= '0';
-          elsif(note_sel4_b = note) then
-            wave_ctrl_b(3) <= '0';
-          end if;  
-        else
-          debug <= '0';
+      if(update_tick = '1') then
+        if(done = '0') then
+        
+          done <= '1';
+    
+          if(channel_message = '1') then
+            if(note_on = '1') then
+              if(wave_ctrl_b(0) = '0') then
+                wave_ctrl_b(0) <= '1';
+                note_sel1_b    <= note;
+              elsif(wave_ctrl_b(1) = '0') then
+                wave_ctrl_b(1) <= '1';
+                note_sel2_b    <= note;
+              elsif(wave_ctrl_b(2) = '0') then
+                wave_ctrl_b(2) <= '1';
+                note_sel3_b    <= note;
+              elsif(wave_ctrl_b(3) = '0') then
+                  wave_ctrl_b(3) <= '1';
+                  note_sel4_b    <= note;
+              end if;            
+            elsif(note_off = '1') then
+              debug <= '1';
+              if(note_sel1_b = note) then
+                wave_ctrl_b(0) <= '0';
+              end if;
+              if(note_sel2_b = note) then
+                wave_ctrl_b(1) <= '0';
+              end if;
+              if(note_sel3_b = note) then
+                wave_ctrl_b(2) <= '0';
+              end if;
+              if(note_sel4_b = note) then
+                wave_ctrl_b(3) <= '0';
+              end if;  
+            else
+              debug <= '0';
+            end if;
+          end if;
         end if;
+      else
+        done <= '0';
       end if;
     end if;
   end process;
