@@ -71,6 +71,25 @@ architecture Behavioral of uart_module is
   );
   end component;
   
+  component midi_decoder
+  port(
+    clk       : in  std_logic;
+    reset     : in  std_logic;
+    byte_in   : in  std_logic_vector(7 downto 0);
+    tick      : in  std_logic;          
+    wave_ctrl : out std_logic_vector(3 downto 0);
+    note_sel1 : out std_logic_vector(6 downto 0);
+    wave_sel1 : out std_logic_vector(1 downto 0);
+    note_sel2 : out std_logic_vector(6 downto 0);
+    wave_sel2 : out std_logic_vector(1 downto 0);
+    note_sel3 : out std_logic_vector(6 downto 0);
+    wave_sel3 : out std_logic_vector(1 downto 0);
+    note_sel4 : out std_logic_vector(6 downto 0);
+    wave_sel4 : out std_logic_vector(1 downto 0);
+    status_out : out std_logic_vector(7 downto 0)
+  );
+  end component;
+  
   
   -- Declare signals
   signal s_tick : std_logic;
