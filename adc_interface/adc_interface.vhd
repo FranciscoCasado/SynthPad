@@ -29,14 +29,14 @@ entity adc_interface is
     spi_mosi   : out std_logic;
     spi_sck    : out std_logic;
     spi_cs     : out std_logic;
-    ch0_output : out std_logic_vector(7 downto 0);
-    ch1_output : out std_logic_vector(7 downto 0);
-    ch2_output : out std_logic_vector(7 downto 0);
-    ch3_output : out std_logic_vector(7 downto 0);
-    ch4_output : out std_logic_vector(7 downto 0);
-    ch5_output : out std_logic_vector(7 downto 0);
-    ch6_output : out std_logic_vector(7 downto 0);
-    ch7_output : out std_logic_vector(7 downto 0)
+    ch0_output : out std_logic_vector(9 downto 0);
+    ch1_output : out std_logic_vector(9 downto 0);
+    ch2_output : out std_logic_vector(9 downto 0);
+    ch3_output : out std_logic_vector(9 downto 0);
+    ch4_output : out std_logic_vector(9 downto 0);
+    ch5_output : out std_logic_vector(9 downto 0);
+    ch6_output : out std_logic_vector(9 downto 0);
+    ch7_output : out std_logic_vector(9 downto 0)
   );
 end adc_interface;
 
@@ -58,14 +58,14 @@ architecture Behavioral of adc_interface is
   signal data_out_b : std_logic_vector(9 downto 0);
   signal data_out   : std_logic_vector(9 downto 0);
   
-  signal ch0_output_b : std_logic_vector(7 downto 0);
-  signal ch1_output_b : std_logic_vector(7 downto 0);
-  signal ch2_output_b : std_logic_vector(7 downto 0);
-  signal ch3_output_b : std_logic_vector(7 downto 0);
-  signal ch4_output_b : std_logic_vector(7 downto 0);
-  signal ch5_output_b : std_logic_vector(7 downto 0);
-  signal ch6_output_b : std_logic_vector(7 downto 0);
-  signal ch7_output_b : std_logic_vector(7 downto 0);
+  signal ch0_output_b : std_logic_vector(9 downto 0);
+  signal ch1_output_b : std_logic_vector(9 downto 0);
+  signal ch2_output_b : std_logic_vector(9 downto 0);
+  signal ch3_output_b : std_logic_vector(9 downto 0);
+  signal ch4_output_b : std_logic_vector(9 downto 0);
+  signal ch5_output_b : std_logic_vector(9 downto 0);
+  signal ch6_output_b : std_logic_vector(9 downto 0);
+  signal ch7_output_b : std_logic_vector(9 downto 0);
 
 begin
   spi_sck <= clk_div;
@@ -172,7 +172,7 @@ begin
         --ch0_output_b <= "10101010";
         --ch0_output <= data_out_b(9 downto 2);
         if(addr = 0) then
-          ch0_output_b <= data_out_b(9 downto 2);
+          ch0_output_b <= data_out_b;
         end if;
 --        elsif(addr = 1) then
 --          ch1_output_b <= data_out_b(9 downto 2);
