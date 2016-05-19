@@ -120,7 +120,7 @@ begin
     elsif(state = s_dontcare) then
       state_next <= s_data;
     elsif(state = s_data) then
-      if(data_counter = 9) then
+      if(data_counter = 11) then
         state_next <= s_stop;
       else
         state_next <= s_data;
@@ -130,12 +130,21 @@ begin
     end if;
   end process;
   
+  process(clk_div)
+  begin
+    if(clk_div'event and clk_div = '1') then
+      if(state = s_data) then
+        data_out_b <= data_out_b(8 downto 0)& spi_miso;
+      end if;
+    end if;
+  end process;
+  
   process(clk_div, reset)
   begin
     if(reset = '1') then
       state  <= s_stop;
       spi_cs <= '0';
-    elsif(clk_div'event and clk_div = '1') then
+    elsif(clk_div'event and clk_div = '0') then
       state <= state_next;
       addr_counter <= (others => '0');
       conf_counter <= (others => '0');
@@ -157,7 +166,6 @@ begin
         spi_mosi <= '0';
       elsif(state = s_data) then
         data_counter <= data_counter + 1;
-        data_out_b <= data_out_b(8 downto 0)& spi_miso;
       else
         data_out <= data_out_b;
         spi_cs <= '1';
