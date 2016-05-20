@@ -29,39 +29,46 @@ unsigned char I2C_Recv[21];
 void main(void){
     
     TRISCbits.RC0 = 0;
+    TRISBbits.RB0 = 0;
+    TRISBbits.RB1 = 0;
+    PORTBbits.RB0 = 1;
+    PORTBbits.RB1 = 1;
 
     LATCbits.LATC0 = 1;
 
-    unsigned char sync_mode = 0, slew = 1, slave_address, w, data, status, length;
-
-    for( w=0; w<20; w++)
-        I2C_Recv[w] = 0;
-
-    slave_address = 0x70 << 1;    // Address of the slave device under communication
-    data = 0x3A;
-
-    //CloseI2C();
-
-    // Initialize I2C module for master mode @100kHz
+    // Example from datasheet, page 1123;
+    unsigned char sync_mode=0, slew=0, add1,w,data,status,length;
+    for(w=0;w<20;w++)
+        I2C_Recv[w]=0;
+    
+    add1 = 0x70 << 1; //address of the device (slave) under communication
+    CloseI2C(); //close i2c if was operating earlier
+    
+    //---INITIALISE THE I2C MODULE FOR MASTER MODE WITH 100KHz ---
     sync_mode = MASTER;
     slew = SLEW_OFF;
-
-    OpenI2C(sync_mode, slew);
-
-    SSPADD = 0x09;      // set baudrate at 100kHz
-    while(1){
-        // Check for bus idle condition
-        IdleI2C();
-
-        // Start I2C
-        StartI2C();
-        IdleI2C();                         // Wait for the end of the START condition
-        WriteI2C( slave_address & 0xfe );  // Send address with R/W cleared for write
-        IdleI2C();                         // Wait for ACK
-        WriteI2C( data & 0xff );                  // Write first byte of data
-        IdleI2C();                         // Wait for ACK
-        StopI2C();                         // Hang up, send STOP condition
-
-        LATCbits.LATC0 = !LATCbits.LATC0 ;
+    
+    OpenI2C(sync_mode,slew);
+    SSPADD=0x09; //100kHz Baud clock(9) @8MHz
+    //check for bus idle condition in multi master communication
+    IdleI2C();
+    //---START I2C---
+    StartI2C();
+    //****write the address of the device for communication***
+    data = SSPBUF; //read any previous stored content in buffer to clear buffer full status
+    
+    do{
+        status = WriteI2C( add1 ); //write the address of slave
+        if(status == -1){ //check if bus collision happened
+            data = SSPBUF; //upon bus collision detection clear the buffer,
+            SSPCON1bits.WCOL=0; // clear the bus collision status bit
+        }
     }
+    while(status!=0); //write untill successful communication
+    //R/W BIT IS '0' FOR FURTHER WRITE TO SLAVE
+    //***WRITE THE THE DATA TO BE SENT FOR SLAVE***
+    while(putsI2C(I2C_Send)!=0); //write string of data to be transmitted to slave
+    //---TERMINATE COMMUNICATION FROM MASTER SIDE---
+    IdleI2C();
+  
 }
