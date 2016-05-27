@@ -17,12 +17,9 @@
 -- Additional Comments: 
 --
 ----------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -31,19 +28,31 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity synth_top_module is
   port( 
-    clk         : in  std_logic;
-    reset       : in  std_logic;
-    rx          : in  std_logic;
-    SPI_MISO    : in  std_logic;     
-    SPI_MOSI    : out std_logic;
-		SPI_SCK     : out std_logic;
-		DAC_CS      : out std_logic;
-		DAC_CLR     : out std_logic;
-    SPI_SS_B    : out std_logic;
-    AMP_CS      : out std_logic;
-    AD_CONV     : out std_logic;
-    FPGA_INIT_B : out std_logic;
-    LED         : out std_logic_vector(7 downto 0)
+    clk          : in  std_logic;
+    reset        : in  std_logic;
+    rx           : in  std_logic;
+    SPI_MISO     : in  std_logic;
+    adc_spi_miso : in  std_logic;     
+    -- Spartan 3-E DAC
+    SPI_MOSI     : out std_logic;
+		SPI_SCK      : out std_logic;
+		DAC_CS       : out std_logic;
+		DAC_CLR      : out std_logic;
+    SPI_SS_B     : out std_logic;
+    AMP_CS       : out std_logic;
+    AD_CONV      : out std_logic;
+    FPGA_INIT_B  : out std_logic;
+    LED          : out std_logic_vector(7 downto 0);
+    -- ADC
+    adc_spi_sck  : out std_logic;
+    adc_spi_mosi : out std_logic;
+    adc_spi_cs   : out std_logic;
+    -- LCD
+    SF_D         : out std_logic_vector(11 downto 8);
+    LCD_E        : out std_logic;
+    LCD_RS       : out std_logic;
+    LCD_RW       : out std_logic;
+    SF_CE0       : out std_logic
   );
 end synth_top_module;
 
@@ -83,12 +92,12 @@ architecture Behavioral of synth_top_module is
   
   component dac_interface
   port(
-		SPI_MISO  : in std_logic;
-		data_in   : in std_logic_vector(11 downto 0);
-		comm      : in std_logic_vector(3 downto 0);
-		addr      : in std_logic_vector(3 downto 0);
-		reset     : in std_logic;
-		CLK       : in std_logic;          
+		SPI_MISO  : in  std_logic;
+		data_in   : in  std_logic_vector(11 downto 0);
+		comm      : in  std_logic_vector(3 downto 0);
+		addr      : in  std_logic_vector(3 downto 0);
+		reset     : in  std_logic;
+		CLK       : in  std_logic;          
 		SPI_MOSI  : out std_logic;
 		SPI_SCK   : out std_logic;
 		DAC_CS    : out std_logic;
@@ -114,7 +123,53 @@ architecture Behavioral of synth_top_module is
     wave_sel3 : out std_logic_vector(1 downto 0);
     note_sel4 : out std_logic_vector(6 downto 0);
     wave_sel4 : out std_logic_vector(1 downto 0);
-    status_out : out std_logic_vector(7 downto 0)
+    status_out : out std_logic_vector(7 downto 0);
+    note_vel1 : out std_logic_vector(6 downto 0);
+    note_vel2 : out std_logic_vector(6 downto 0);
+    note_vel3 : out std_logic_vector(6 downto 0);
+    note_vel4 : out std_logic_vector(6 downto 0)
+  );
+  end component;
+  
+  component multiplier_wave
+  port(
+    clk : in  std_logic;
+    a   : in  std_logic_vector(17 downto 0);
+    b   : in  std_logic_vector(17 downto 0);
+    p   : out std_logic_vector(35 downto 0)
+  );
+  end component;
+
+  component adc_interface
+  port(
+    clk        : in std_logic;
+    reset      : in std_logic;
+    spi_miso   : in std_logic;          
+    spi_mosi   : out std_logic;
+    spi_sck    : out std_logic;
+    spi_cs     : out std_logic;
+    ch0_output : out std_logic_vector(7 downto 0);
+    ch1_output : out std_logic_vector(7 downto 0);
+    ch2_output : out std_logic_vector(7 downto 0);
+    ch3_output : out std_logic_vector(7 downto 0);
+    ch4_output : out std_logic_vector(7 downto 0);
+    ch5_output : out std_logic_vector(7 downto 0);
+    ch6_output : out std_logic_vector(7 downto 0);
+    ch7_output : out std_logic_vector(7 downto 0)
+  );
+  end component;
+  
+  component lcd
+  port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    test_lcd    : in  std_logic_vector(13 downto 0);
+    test_lcd_wr : in  std_logic_vector(7 downto 0);          
+    SF_D        : out std_logic_vector(11 downto 8);
+    LCD_E       : out std_logic;
+    LCD_RS      : out std_logic;
+    LCD_RW      : out std_logic;
+    SF_CE0      : out std_logic
   );
   end component;
   
@@ -128,6 +183,11 @@ architecture Behavioral of synth_top_module is
   signal note_sel2 : std_logic_vector(6 downto 0);
   signal note_sel3 : std_logic_vector(6 downto 0);
   signal note_sel4 : std_logic_vector(6 downto 0);
+  
+  signal note_vel1 : std_logic_vector(6 downto 0);
+  signal note_vel2 : std_logic_vector(6 downto 0);
+  signal note_vel3 : std_logic_vector(6 downto 0);
+  signal note_vel4 : std_logic_vector(6 downto 0);
   
   signal wave_sel1 : std_logic_vector(1 downto 0);
   signal wave_sel2 : std_logic_vector(1 downto 0);
@@ -148,11 +208,55 @@ architecture Behavioral of synth_top_module is
   -- DAC Signals
   signal shift_in  : std_logic_vector(23 downto 0);
   signal shift_out : std_logic_vector(23 downto 0);
-
+  
+  -- Vel Multiplier Signals
+  signal wave_1_extended : std_logic_vector(17 downto 0);
+  signal wave_2_extended : std_logic_vector(17 downto 0);
+  signal wave_3_extended : std_logic_vector(17 downto 0);
+  signal wave_4_extended : std_logic_vector(17 downto 0);
+  
+  signal vel1_extended : std_logic_vector(17 downto 0);
+  signal vel2_extended : std_logic_vector(17 downto 0);
+  signal vel3_extended : std_logic_vector(17 downto 0);
+  signal vel4_extended : std_logic_vector(17 downto 0);
+  
+  signal mult_vel_1_output : std_logic_vector(35 downto 0);
+  signal mult_vel_2_output : std_logic_vector(35 downto 0);
+  signal mult_vel_3_output : std_logic_vector(35 downto 0);
+  signal mult_vel_4_output : std_logic_vector(35 downto 0);
+  
+  -- ADC - ADSR Signals
+  signal adsr_attack  : std_logic_vector(7 downto 0);
+  signal adsr_decay   : std_logic_vector(7 downto 0);
+  signal adsr_sustain : std_logic_vector(7 downto 0);
+  signal adsr_release : std_logic_vector(7 downto 0);
+  
+  -- LCD Signals
+  signal lcd_reset : std_logic;
+  signal lcd_instr : std_logic_vector(13 downto 0);
+  signal lcd_wr    : std_logic_vector(7 downto 0);
+  
 begin
-  LED <= wave_out(7 downto 0);
+  
+  -- LCD Signals
+  lcd_reset <= not reset;
+  lcd_instr <= adsr_attack(7 downto 1)&adsr_decay(7 downto 1);
+  lcd_wr    <= adsr_sustain(7 downto 4)&adsr_release(7 downto 4);
+  
+  LED <= mult_vel_1_output(30 downto 23);
+  
+  -- Multiplier length compliance
+  wave_1_extended <= wave_1&"00000000";
+  wave_2_extended <= wave_2&"00000000";
+  wave_3_extended <= wave_3&"00000000";
+  wave_4_extended <= wave_4&"00000000";
 
-  -- SPI Config
+  vel1_extended <= note_vel1&"00000000000";
+  vel2_extended <= note_vel2&"00000000000";
+  vel3_extended <= note_vel3&"00000000000";
+  vel4_extended <= note_vel4&"00000000000";
+
+  -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
   AMP_CS      <= '1';
   AD_CONV     <= '0';
@@ -208,10 +312,10 @@ begin
   Inst_wave_mixer: wave_mixer 
   port map(
     ctrl     => decoder_wave_ctrl,
-    wave_1   => wave_1,
-    wave_2   => wave_2,
-    wave_3   => wave_3,
-    wave_4   => wave_4,
+    wave_1   => mult_vel_1_output(35 downto 26),
+    wave_2   => mult_vel_2_output(35 downto 26),
+    wave_3   => mult_vel_3_output(35 downto 26),
+    wave_4   => mult_vel_4_output(35 downto 26),
     wave_out => wave_out 
 	);
   
@@ -246,8 +350,71 @@ begin
     wave_sel3 => wave_sel3,
     note_sel4 => note_sel4,
     wave_sel4 => wave_sel4,
-    status_out => status_out 
+    status_out => status_out,
+    note_vel1 => note_vel1,
+    note_vel2 => note_vel2,
+    note_vel3 => note_vel3,
+    note_vel4 => note_vel4    
   );
+  
+  Inst_multiplier_vel_1 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => wave_1_extended,
+    b   => vel1_extended,
+    p   => mult_vel_1_output
+  );
+  
+  Inst_multiplier_vel_2 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => wave_2_extended,
+    b   => vel2_extended,
+    p   => mult_vel_2_output
+  );
+  
+  Inst_multiplier_vel_3 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => wave_3_extended,
+    b   => vel3_extended,
+    p   => mult_vel_3_output
+  );
+  
+  Inst_multiplier_vel_4 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => wave_4_extended,
+    b   => vel4_extended,
+    p   => mult_vel_4_output
+  );
+  
+  Inst_adc_interface: adc_interface 
+  port map(
+    clk        => clk,
+    reset      => reset,
+    spi_miso   => adc_spi_miso,
+    spi_mosi   => adc_spi_mosi,
+    spi_sck    => adc_spi_sck,
+    spi_cs     => adc_spi_cs,
+    ch0_output => adsr_attack,
+    ch1_output => adsr_decay,
+    ch2_output => adsr_sustain,
+    ch3_output => adsr_release
+  );
+    
+  Inst_lcd: lcd 
+  port map(
+    clk         => clk,
+    rst         => lcd_reset,
+    test_lcd    => lcd_instr,
+    test_lcd_wr => lcd_wr,
+    SF_D        => SF_D,
+    LCD_E       => LCD_E,
+    LCD_RS      => LCD_RS,
+    LCD_RW      => LCD_RW,
+    SF_CE0      => SF_CE0 
+	);
 
 end Behavioral;
 

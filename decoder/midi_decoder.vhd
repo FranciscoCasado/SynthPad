@@ -44,7 +44,11 @@ entity midi_decoder is
     wave_sel3 : out std_logic_vector(1 downto 0);
     note_sel4 : out std_logic_vector(6 downto 0);
     wave_sel4 : out std_logic_vector(1 downto 0);
-    status_out : out std_logic_vector(7 downto 0)
+    status_out : out std_logic_vector(7 downto 0);
+    note_vel1 : out std_logic_vector(6 downto 0);
+    note_vel2 : out std_logic_vector(6 downto 0);
+    note_vel3 : out std_logic_vector(6 downto 0);
+    note_vel4 : out std_logic_vector(6 downto 0)
   );
 end midi_decoder;
 
@@ -65,20 +69,29 @@ type byte_state is (
   signal status_msb4 : std_logic_vector(2 downto 0);
   
   signal wave_ctrl_b : std_logic_vector(3 downto 0);
+  
   signal note_sel1_b : std_logic_vector(6 downto 0);
   signal wave_sel1_b : std_logic_vector(1 downto 0);
+  signal note_vel1_b : std_logic_vector(6 downto 0);
+  
   signal note_sel2_b : std_logic_vector(6 downto 0);
   signal wave_sel2_b : std_logic_vector(1 downto 0);
+  signal note_vel2_b : std_logic_vector(6 downto 0);
+  
   signal note_sel3_b : std_logic_vector(6 downto 0);
   signal wave_sel3_b : std_logic_vector(1 downto 0);
+  signal note_vel3_b : std_logic_vector(6 downto 0);
+  
   signal note_sel4_b : std_logic_vector(6 downto 0);
   signal wave_sel4_b : std_logic_vector(1 downto 0);
+  signal note_vel4_b : std_logic_vector(6 downto 0);
   
   signal instruction_tick : std_logic;
   signal channel_message : std_logic;
   
   signal device_channel : std_logic_vector(3 downto 0) := "0000"; -- Our Device is set to listen to channel 0 !
   signal note     : std_logic_vector(6 downto 0);
+  signal vel      : std_logic_vector(6 downto 0);
   signal note_on  : std_logic;
   signal note_off : std_logic;
   
@@ -95,6 +108,7 @@ begin
 
   status_msb4 <= status_byte(6 downto 4);
   note <= data1_byte(6 downto 0);
+  vel  <= data2_byte(6 downto 0);
   
   status_out <= note_on&note_off&"00"&wave_ctrl_b;
   
@@ -106,13 +120,21 @@ begin
 
   -- Estas deben ser modificadas
   wave_ctrl <= wave_ctrl_b;
+  
   note_sel1 <= note_sel1_b;
+  note_vel1 <= note_vel1_b;
   wave_sel1 <= wave_sel1_b;
+  
   note_sel2 <= note_sel2_b;
+  note_vel2 <= note_vel2_b;
   wave_sel2 <= wave_sel2_b;
+  
   note_sel3 <= note_sel3_b;
+  note_vel3 <= note_vel3_b;
   wave_sel3 <= wave_sel3_b;
+  
   note_sel4 <= note_sel4_b;
+  note_vel4 <= note_vel4_b;
   wave_sel4 <= wave_sel4_b;
   
   process(state, tick)
@@ -243,29 +265,37 @@ begin
               if(wave_ctrl_b(0) = '0') then
                 wave_ctrl_b(0) <= '1';
                 note_sel1_b    <= note;
+                note_vel1_b    <= vel;
               elsif(wave_ctrl_b(1) = '0') then
                 wave_ctrl_b(1) <= '1';
                 note_sel2_b    <= note;
+                note_vel2_b    <= vel;
               elsif(wave_ctrl_b(2) = '0') then
                 wave_ctrl_b(2) <= '1';
                 note_sel3_b    <= note;
+                note_vel3_b    <= vel;
               elsif(wave_ctrl_b(3) = '0') then
-                  wave_ctrl_b(3) <= '1';
-                  note_sel4_b    <= note;
+                wave_ctrl_b(3) <= '1';
+                note_sel4_b    <= note;
+                note_vel4_b    <= vel;
               end if;            
             elsif(note_off = '1') then
               debug <= '1';
               if(note_sel1_b = note) then
                 wave_ctrl_b(0) <= '0';
+                note_vel1_b    <= vel;
               end if;
               if(note_sel2_b = note) then
                 wave_ctrl_b(1) <= '0';
+                note_vel2_b    <= vel;
               end if;
               if(note_sel3_b = note) then
                 wave_ctrl_b(2) <= '0';
+                note_vel3_b    <= vel;
               end if;
               if(note_sel4_b = note) then
                 wave_ctrl_b(3) <= '0';
+                note_vel4_b    <= vel;
               end if;  
             else
               debug <= '0';

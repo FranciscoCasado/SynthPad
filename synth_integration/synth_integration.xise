@@ -20,15 +20,15 @@
     </file>
     <file xil_pn:name="synth_top_module.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="16"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="16"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="19"/>
     </file>
     <file xil_pn:name="../decoder/midi_decoder.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="14"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
     </file>
     <file xil_pn:name="../dac_interface/dac_interface.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="15"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="16"/>
     </file>
     <file xil_pn:name="../oscilators/note_generator.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="10"/>
@@ -52,11 +52,11 @@
     </file>
     <file xil_pn:name="../oscilators/voice_unit.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="13"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
     </file>
     <file xil_pn:name="../oscilators/wave_mixer.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="12"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="12"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
     </file>
     <file xil_pn:name="../oscilators/ipcore_dir/note_map.xco" xil_pn:type="FILE_COREGEN">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="2"/>
@@ -88,10 +88,29 @@
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="84"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="84"/>
     </file>
+    <file xil_pn:name="ipcore_dir/multiplier_wave.xco" xil_pn:type="FILE_COREGEN">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="95"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="12"/>
+    </file>
+    <file xil_pn:name="../adc_interface/adc_interface.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="100"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="18"/>
+    </file>
+    <file xil_pn:name="../adc_interface/lcd_interface.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="102"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="17"/>
+    </file>
+    <file xil_pn:name="adsr_generator.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="103"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="103"/>
+    </file>
     <file xil_pn:name="../oscilators/ipcore_dir/note_map.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../oscilators/ipcore_dir/sine_mem.xise" xil_pn:type="FILE_COREGENISE">
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+    </file>
+    <file xil_pn:name="ipcore_dir/multiplier_wave.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>
