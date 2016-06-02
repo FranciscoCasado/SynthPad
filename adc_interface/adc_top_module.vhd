@@ -48,14 +48,14 @@ component adc_interface
     spi_mosi   : out std_logic;
     spi_sck    : out std_logic;
     spi_cs     : out std_logic;
-    ch0_output : out std_logic_vector(9 downto 0);
-    ch1_output : out std_logic_vector(9 downto 0);
-    ch2_output : out std_logic_vector(9 downto 0);
-    ch3_output : out std_logic_vector(9 downto 0);
-    ch4_output : out std_logic_vector(9 downto 0);
-    ch5_output : out std_logic_vector(9 downto 0);
-    ch6_output : out std_logic_vector(9 downto 0);
-    ch7_output : out std_logic_vector(9 downto 0)
+    ch0_output : out std_logic_vector(7 downto 0);
+    ch1_output : out std_logic_vector(7 downto 0);
+    ch2_output : out std_logic_vector(7 downto 0);
+    ch3_output : out std_logic_vector(7 downto 0);
+    ch4_output : out std_logic_vector(7 downto 0);
+    ch5_output : out std_logic_vector(7 downto 0);
+    ch6_output : out std_logic_vector(7 downto 0);
+    ch7_output : out std_logic_vector(7 downto 0)
   );
 end component;
 
@@ -76,27 +76,27 @@ end component;
   signal reset_lcd   : std_logic;
   signal data_in_led : std_logic_vector(13 downto 0);
   
-  signal ch0_output : std_logic_vector(9 downto 0);
-  signal ch1_output : std_logic_vector(9 downto 0);
-  signal ch2_output : std_logic_vector(9 downto 0);
-  signal ch3_output : std_logic_vector(9 downto 0);
-  signal ch4_output : std_logic_vector(9 downto 0);
-  signal ch5_output : std_logic_vector(9 downto 0);
-  signal ch6_output : std_logic_vector(9 downto 0);
-  signal ch7_output : std_logic_vector(9 downto 0);
+  signal ch0_output : std_logic_vector(7 downto 0);
+  signal ch1_output : std_logic_vector(7 downto 0);
+  signal ch2_output : std_logic_vector(7 downto 0);
+  signal ch3_output : std_logic_vector(7 downto 0);
+  signal ch4_output : std_logic_vector(7 downto 0);
+  signal ch5_output : std_logic_vector(7 downto 0);
+  signal ch6_output : std_logic_vector(7 downto 0);
+  signal ch7_output : std_logic_vector(7 downto 0);
 
 begin
 
-  LED         <= ch0_output(9 downto 2);
+  LED         <= ch0_output(7 downto 0);
   reset_lcd   <= not reset; -- LCD has active low reset
-  data_in_led <= ch0_output&"0000";
+  data_in_led <= ch0_output&"000000";
 
   Inst_lcd: lcd 
   port map(
     clk         => clk,
     rst         => reset_lcd,
     test_lcd    => data_in_led,
-    test_lcd_wr => ch0_output(9 downto 2),
+    test_lcd_wr => ch0_output(7 downto 0),
     SF_D        => SF_D,
     LCD_E       => LCD_E,
     LCD_RS      => LCD_RS,

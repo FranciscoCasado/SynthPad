@@ -52,7 +52,8 @@ entity synth_top_module is
     LCD_E        : out std_logic;
     LCD_RS       : out std_logic;
     LCD_RW       : out std_logic;
-    SF_CE0       : out std_logic
+    SF_CE0       : out std_logic;
+    tick         : out std_logic
   );
 end synth_top_module;
 
@@ -110,24 +111,26 @@ architecture Behavioral of synth_top_module is
   
   component midi_decoder
   port(
-    clk       : in std_logic;
-    reset     : in std_logic;
-    byte_in   : in std_logic_vector(7 downto 0);
-    tick      : in std_logic;          
-    wave_ctrl : out std_logic_vector(3 downto 0);
-    note_sel1 : out std_logic_vector(6 downto 0);
-    wave_sel1 : out std_logic_vector(1 downto 0);
-    note_sel2 : out std_logic_vector(6 downto 0);
-    wave_sel2 : out std_logic_vector(1 downto 0);
-    note_sel3 : out std_logic_vector(6 downto 0);
-    wave_sel3 : out std_logic_vector(1 downto 0);
-    note_sel4 : out std_logic_vector(6 downto 0);
-    wave_sel4 : out std_logic_vector(1 downto 0);
-    status_out : out std_logic_vector(7 downto 0);
-    note_vel1 : out std_logic_vector(6 downto 0);
-    note_vel2 : out std_logic_vector(6 downto 0);
-    note_vel3 : out std_logic_vector(6 downto 0);
-    note_vel4 : out std_logic_vector(6 downto 0)
+    clk           : in std_logic;
+    reset         : in std_logic;
+    byte_in       : in std_logic_vector(7 downto 0);
+    tick          : in std_logic;          
+    wave_ctrl     : out std_logic_vector(3 downto 0);
+    note_sel1     : out std_logic_vector(6 downto 0);
+    wave_sel1     : out std_logic_vector(1 downto 0);
+    note_sel2     : out std_logic_vector(6 downto 0);
+    wave_sel2     : out std_logic_vector(1 downto 0);
+    note_sel3     : out std_logic_vector(6 downto 0);
+    wave_sel3     : out std_logic_vector(1 downto 0);
+    note_sel4     : out std_logic_vector(6 downto 0);
+    wave_sel4     : out std_logic_vector(1 downto 0);
+    status_out    : out std_logic_vector(7 downto 0);
+    note_vel1     : out std_logic_vector(6 downto 0);
+    note_vel2     : out std_logic_vector(6 downto 0);
+    note_vel3     : out std_logic_vector(6 downto 0);
+    note_vel4     : out std_logic_vector(6 downto 0);
+    note_on_tick  : out std_logic_vector(3 downto 0);
+    note_off_tick : out std_logic_vector(3 downto 0)
   );
   end component;
   
@@ -170,6 +173,23 @@ architecture Behavioral of synth_top_module is
     LCD_RS      : out std_logic;
     LCD_RW      : out std_logic;
     SF_CE0      : out std_logic
+  );
+  end component;
+  
+  component adsr_generator
+	port(
+    clk           : in std_logic;
+    reset         : in std_logic;
+    note_on_tick  : in std_logic;
+    note_off_tick : in std_logic;
+    attack        : in std_logic_vector(7 downto 0);
+    decay         : in std_logic_vector(7 downto 0);
+    sustain       : in std_logic_vector(7 downto 0);
+    release       : in std_logic_vector(7 downto 0);          
+    envelope      : out std_logic_vector(9 downto 0);
+    led_status    : out std_logic_vector(2 downto 0);
+    parameter     : out std_logic_vector(7 downto 0);
+    tick          : out std_logic
   );
   end component;
   
@@ -231,6 +251,18 @@ architecture Behavioral of synth_top_module is
   signal adsr_sustain : std_logic_vector(7 downto 0);
   signal adsr_release : std_logic_vector(7 downto 0);
   
+  -- MIDI Decoder - ADSR Control Signals
+  signal note_on_tick : std_logic_vector(3 downto 0);
+  signal note_off_tick : std_logic_vector(3 downto 0);
+  
+  -- ADSR Generator - Output Signals
+  signal adsr_envelope1 : std_logic_vector(9 downto 0);
+  signal adsr_envelope2 : std_logic_vector(9 downto 0);
+  signal adsr_envelope3 : std_logic_vector(9 downto 0);
+  signal adsr_envelope4 : std_logic_vector(9 downto 0);
+  signal adsr_led_status : std_logic_vector(2 downto 0);
+  signal adsr_parameter : std_logic_vector(7 downto 0);
+  
   -- LCD Signals
   signal lcd_reset : std_logic;
   signal lcd_instr : std_logic_vector(13 downto 0);
@@ -240,10 +272,10 @@ begin
   
   -- LCD Signals
   lcd_reset <= not reset;
-  lcd_instr <= adsr_attack(7 downto 1)&adsr_decay(7 downto 1);
-  lcd_wr    <= adsr_sustain(7 downto 4)&adsr_release(7 downto 4);
+  lcd_instr <= adsr_envelope1&"0000";
+  lcd_wr    <= adsr_parameter; --adsr_sustain(7 downto 4)&adsr_release(7 downto 4);
   
-  LED <= mult_vel_1_output(30 downto 23);
+  LED <= "00000"&adsr_led_status;
   
   -- Multiplier length compliance
   wave_1_extended <= wave_1&"00000000";
@@ -312,10 +344,10 @@ begin
   Inst_wave_mixer: wave_mixer 
   port map(
     ctrl     => decoder_wave_ctrl,
-    wave_1   => mult_vel_1_output(35 downto 26),
-    wave_2   => mult_vel_2_output(35 downto 26),
-    wave_3   => mult_vel_3_output(35 downto 26),
-    wave_4   => mult_vel_4_output(35 downto 26),
+    wave_1   => adsr_envelope1,--mult_vel_1_output(35 downto 26),
+    wave_2   => adsr_envelope2,--mult_vel_2_output(35 downto 26),
+    wave_3   => adsr_envelope3,--mult_vel_3_output(35 downto 26),
+    wave_4   => adsr_envelope4,--mult_vel_4_output(35 downto 26),
     wave_out => wave_out 
 	);
   
@@ -337,24 +369,26 @@ begin
   
   Inst_midi_decoder: midi_decoder 
   port map(
-    clk       => clk,
-    reset     => reset,
-    byte_in   => uart_byte,
-    tick      => uart_done,
-    wave_ctrl => decoder_wave_ctrl,
-    note_sel1 => note_sel1,
-    wave_sel1 => wave_sel1,
-    note_sel2 => note_sel2,
-    wave_sel2 => wave_sel2,
-    note_sel3 => note_sel3,
-    wave_sel3 => wave_sel3,
-    note_sel4 => note_sel4,
-    wave_sel4 => wave_sel4,
-    status_out => status_out,
-    note_vel1 => note_vel1,
-    note_vel2 => note_vel2,
-    note_vel3 => note_vel3,
-    note_vel4 => note_vel4    
+    clk           => clk,
+    reset         => reset,
+    byte_in       => uart_byte,
+    tick          => uart_done,
+    wave_ctrl     => decoder_wave_ctrl,
+    note_sel1     => note_sel1,
+    wave_sel1     => wave_sel1,
+    note_sel2     => note_sel2,
+    wave_sel2     => wave_sel2,
+    note_sel3     => note_sel3,
+    wave_sel3     => wave_sel3,
+    note_sel4     => note_sel4,
+    wave_sel4     => wave_sel4,
+    status_out    => status_out,
+    note_vel1     => note_vel1,
+    note_vel2     => note_vel2,
+    note_vel3     => note_vel3,
+    note_vel4     => note_vel4,
+    note_on_tick  => note_on_tick,
+    note_off_tick => note_off_tick    
   );
   
   Inst_multiplier_vel_1 : multiplier_wave
@@ -414,6 +448,61 @@ begin
     LCD_RS      => LCD_RS,
     LCD_RW      => LCD_RW,
     SF_CE0      => SF_CE0 
+	);
+  
+  Inst_adsr_generator_1: adsr_generator 
+  port map(
+    clk           => clk,
+    reset         => reset,
+    note_on_tick  => note_on_tick(0),
+    note_off_tick => note_off_tick(0),
+    attack        => adsr_attack,
+    decay         => adsr_decay,
+    sustain       => adsr_sustain,
+    release       => adsr_release,
+    envelope      => adsr_envelope1,
+    led_status    => adsr_led_status,
+    parameter     => adsr_parameter,
+    tick => tick
+	);
+  
+  Inst_adsr_generator_2: adsr_generator 
+  port map(
+    clk           => clk,
+    reset         => reset,
+    note_on_tick  => note_on_tick(1),
+    note_off_tick => note_off_tick(1),
+    attack        => adsr_attack,
+    decay         => adsr_decay,
+    sustain       => "10000000",
+    release       => adsr_release,
+    envelope      => adsr_envelope2
+	);
+  
+  Inst_adsr_generator_3: adsr_generator 
+  port map(
+    clk           => clk,
+    reset         => reset,
+    note_on_tick  => note_on_tick(2),
+    note_off_tick => note_off_tick(2),
+    attack        => adsr_attack,
+    decay         => adsr_decay,
+    sustain       => "10000000",
+    release       => adsr_release,
+    envelope      => adsr_envelope3
+	);
+  
+  Inst_adsr_generator_4: adsr_generator 
+  port map(
+    clk           => clk,
+    reset         => reset,
+    note_on_tick  => note_on_tick(3),
+    note_off_tick => note_off_tick(3),
+    attack        => adsr_attack,
+    decay         => adsr_decay,
+    sustain       => "10000000",
+    release       => adsr_release,
+    envelope      => adsr_envelope4
 	);
 
 end Behavioral;

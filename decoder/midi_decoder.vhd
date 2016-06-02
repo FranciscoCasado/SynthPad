@@ -48,7 +48,9 @@ entity midi_decoder is
     note_vel1 : out std_logic_vector(6 downto 0);
     note_vel2 : out std_logic_vector(6 downto 0);
     note_vel3 : out std_logic_vector(6 downto 0);
-    note_vel4 : out std_logic_vector(6 downto 0)
+    note_vel4 : out std_logic_vector(6 downto 0);
+    note_on_tick : out std_logic_vector(3 downto 0);
+    note_off_tick : out std_logic_vector(3 downto 0)
   );
 end midi_decoder;
 
@@ -95,6 +97,9 @@ type byte_state is (
   signal note_on  : std_logic;
   signal note_off : std_logic;
   
+  signal note_on_tick_b : std_logic_vector(3 downto 0);
+  signal note_off_tick_b : std_logic_vector(3 downto 0);
+  
   -- Para los multiplicadores de la fpga.
   -- usar shift a la izq, multiplicar y tomar solo los MSB
   
@@ -105,7 +110,6 @@ type byte_state is (
 begin
 
   -- Decoding
-
   status_msb4 <= status_byte(6 downto 4);
   note <= data1_byte(6 downto 0);
   vel  <= data2_byte(6 downto 0);
@@ -136,6 +140,10 @@ begin
   note_sel4 <= note_sel4_b;
   note_vel4 <= note_vel4_b;
   wave_sel4 <= wave_sel4_b;
+  
+  -- Control Signals for envelope generation
+  note_on_tick <= note_on_tick_b;
+  note_off_tick <= note_off_tick_b;
   
   process(state, tick)
   begin
@@ -254,7 +262,9 @@ begin
       wave_sel4_b <= "00";
       done <= '0';
     elsif(clk'event and clk = '1') then --signal debug : std_logic;
-    
+      note_on_tick_b <= "0000";
+      note_off_tick_b <= "0000";
+      
       if(update_tick = '1') then
         if(done = '0') then
         
@@ -266,36 +276,44 @@ begin
                 wave_ctrl_b(0) <= '1';
                 note_sel1_b    <= note;
                 note_vel1_b    <= vel;
+                note_on_tick_b(0) <= '1';
               elsif(wave_ctrl_b(1) = '0') then
                 wave_ctrl_b(1) <= '1';
                 note_sel2_b    <= note;
                 note_vel2_b    <= vel;
+                note_on_tick_b(1) <= '1';
               elsif(wave_ctrl_b(2) = '0') then
                 wave_ctrl_b(2) <= '1';
                 note_sel3_b    <= note;
                 note_vel3_b    <= vel;
+                note_on_tick_b(2) <= '1';
               elsif(wave_ctrl_b(3) = '0') then
                 wave_ctrl_b(3) <= '1';
                 note_sel4_b    <= note;
                 note_vel4_b    <= vel;
+                note_on_tick_b(3) <= '1';
               end if;            
             elsif(note_off = '1') then
               debug <= '1';
               if(note_sel1_b = note) then
                 wave_ctrl_b(0) <= '0';
                 note_vel1_b    <= vel;
+                note_off_tick_b(0) <= '1';
               end if;
               if(note_sel2_b = note) then
                 wave_ctrl_b(1) <= '0';
                 note_vel2_b    <= vel;
+                note_off_tick_b(1) <= '1';
               end if;
               if(note_sel3_b = note) then
                 wave_ctrl_b(2) <= '0';
                 note_vel3_b    <= vel;
+                note_off_tick_b(2) <= '1';
               end if;
               if(note_sel4_b = note) then
                 wave_ctrl_b(3) <= '0';
                 note_vel4_b    <= vel;
+                note_off_tick_b(3) <= '1';
               end if;  
             else
               debug <= '0';

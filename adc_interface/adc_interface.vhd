@@ -46,9 +46,9 @@ architecture Behavioral of adc_interface is
   signal clk_div : std_logic;
   signal clk_counter : unsigned(6 downto 0);
   
-  signal addr : unsigned(2 downto 0) := (others => '0');
+  signal ch_addr : unsigned(2 downto 0) := (others => '0');
   
-  type state_type is (s_idle, s_conf, s_addr, s_dontcare, s_data, s_stop);
+  type state_type is (s_start, s_conf, s_addr, s_dontcare, s_null, s_data, s_stop);
   signal state, state_next: state_type;
   
   signal addr_counter : unsigned(1 downto 0);
@@ -66,6 +66,9 @@ architecture Behavioral of adc_interface is
   signal ch5_output_b : std_logic_vector(7 downto 0);
   signal ch6_output_b : std_logic_vector(7 downto 0);
   signal ch7_output_b : std_logic_vector(7 downto 0);
+  
+  signal read_tick : std_logic;
+  signal spi_mosi_b : std_logic := '0';
 
 begin
   spi_sck <= clk_div;
@@ -79,7 +82,8 @@ begin
   ch6_output <= ch6_output_b;
   ch7_output <= ch7_output_b;
   
-  -- clock counter process
+  
+  -- Clock Counter process
   process(clk, reset)
   begin
     if(reset = '1') then
@@ -89,7 +93,7 @@ begin
     end if;
   end process;
 
-  -- clock div process
+  -- Clock Div process
   process(clk, reset)
   begin
     if(reset = '1') then
@@ -101,16 +105,13 @@ begin
     end if;
   end process;
   
+  -- State Machine: Combinatorial Next State Logic
   process(state, conf_counter, addr_counter, data_counter)
   begin
-    if(state = s_idle) then
+    if(state = s_start) then
       state_next <= s_conf;
     elsif(state = s_conf) then
-      if(conf_counter = 1) then
         state_next <= s_addr;
-      else
-        state_next <= s_conf;
-      end if;
     elsif(state = s_addr) then
       if(addr_counter = 2) then
         state_next <= s_dontcare;
@@ -118,77 +119,90 @@ begin
         state_next <= s_addr;
       end if;
     elsif(state = s_dontcare) then
+      state_next <= s_null;
+    elsif(state = s_null) then
       state_next <= s_data;
     elsif(state = s_data) then
-      if(data_counter = 11) then
+      if(data_counter = 9) then
         state_next <= s_stop;
       else
         state_next <= s_data;
       end if;
     elsif(state = s_stop) then
-      state_next <= s_idle;
+      state_next <= s_start;
     end if;
   end process;
   
+  -- 10bit Shift Register
   process(clk_div)
   begin
     if(clk_div'event and clk_div = '1') then
+      read_tick <= '0';
       if(state = s_data) then
+        read_tick <= not read_tick;
         data_out_b <= data_out_b(8 downto 0)& spi_miso;
       end if;
     end if;
   end process;
   
+  -- State Machine: Sequential Logic
+  -- Notes: 
+  --  - MCP3008 Reads from Din on rising edge 
+  --     -> Data should be set from the FPGA during falling edge of SPI_SCK
+  --  - MCP3008 sets Dout on falling edge, so FPGA should read on rising edge
   process(clk_div, reset)
   begin
     if(reset = '1') then
       state  <= s_stop;
       spi_cs <= '0';
-    elsif(clk_div'event and clk_div = '0') then
+    elsif(clk_div'event and clk_div = '0') then -- Falling edge sequential logic
       state <= state_next;
       addr_counter <= (others => '0');
       conf_counter <= (others => '0');
       data_counter <= (others => '0');
-      spi_cs <= '0';
+      spi_cs       <= '0';
       
-      if(state = s_conf) then
-        conf_counter <= conf_counter + 1;
-        if(conf_counter = 0) then
-          spi_mosi <= '1';
-          addr <= addr + 1;
-        else
-          spi_mosi <= '1';
-        end if;
+      if(state = s_start) then
+        --spi_mosi <= '1'; -- Start is the first time SPI_CLK is high with SPI_MOSI high and CS low
+        ch_addr <= ch_addr + 1;
+        spi_mosi_b <= '1';
+      elsif(state = s_conf) then
+        --spi_mosi <= '0';   -- high stands for single-ended measure
+        spi_mosi_b <= '1';
       elsif(state = s_addr) then
         addr_counter <= addr_counter + 1;
-        spi_mosi <= addr(to_integer(addr_counter)); --
+        spi_mosi_b <= ch_addr(to_integer(addr_counter)); 
       elsif(state = s_dontcare) then
-        spi_mosi <= '0';
+        spi_mosi_b <= '0';
+      elsif(state = s_null) then
+        spi_mosi_b <= '0';
       elsif(state = s_data) then
         data_counter <= data_counter + 1;
-      else
+        spi_mosi_b <= '0';
+      elsif(state = s_stop) then -- stop
         data_out <= data_out_b;
         spi_cs <= '1';
-        --ch0_output_b <= "10101010";
-        --ch0_output <= data_out_b(9 downto 2);
-        if(addr = 0) then
+        spi_mosi_b <= '0';
+        
+
+        if(ch_addr = 0) then
           ch0_output_b <= data_out_b(9 downto 2);
-        elsif(addr = 1) then
+        elsif(ch_addr = 1) then
           ch1_output_b <= data_out_b(9 downto 2);
-        elsif(addr = 2) then
+        elsif(ch_addr = 2) then
           ch2_output_b <= data_out_b(9 downto 2);
-        elsif(addr = 3) then
+        elsif(ch_addr = 3) then
           ch3_output_b <= data_out_b(9 downto 2);
---        elsif(addr = 4) then
---          ch4_output_b <= data_out_b(9 downto 2);
---        elsif(addr = 5) then
---          ch5_output_b <= data_out_b(9 downto 2);
---        elsif(addr = 6) then
---          ch6_output_b <= data_out_b(9 downto 2);
---        elsif(addr = 7) then
---          ch7_output_b <= data_out_b(9 downto 2);
---        else
---          ch0_output_b <= "10101010";
+        elsif(ch_addr = 4) then
+          ch4_output_b <= data_out_b(9 downto 2);
+        elsif(ch_addr = 5) then
+          ch5_output_b <= data_out_b(9 downto 2);
+        elsif(ch_addr = 6) then
+          ch6_output_b <= data_out_b(9 downto 2);
+        elsif(ch_addr = 7) then
+          ch7_output_b <= data_out_b(9 downto 2);
+        else
+          ch0_output_b <= "10101010";
         end if;
 
       end if;
