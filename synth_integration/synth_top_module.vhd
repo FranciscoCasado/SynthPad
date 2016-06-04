@@ -30,6 +30,7 @@ entity synth_top_module is
   port( 
     clk          : in  std_logic;
     reset        : in  std_logic;
+    SW           : in  std_logic_vector(2 downto 0);
     rx           : in  std_logic;
     SPI_MISO     : in  std_logic;
     adc_spi_miso : in  std_logic;     
@@ -158,7 +159,8 @@ architecture Behavioral of synth_top_module is
     ch4_output : out std_logic_vector(7 downto 0);
     ch5_output : out std_logic_vector(7 downto 0);
     ch6_output : out std_logic_vector(7 downto 0);
-    ch7_output : out std_logic_vector(7 downto 0)
+    ch7_output : out std_logic_vector(7 downto 0);
+    shift_in  : out std_logic_vector(9 downto 0)
   );
   end component;
   
@@ -263,6 +265,17 @@ architecture Behavioral of synth_top_module is
   signal adsr_led_status : std_logic_vector(2 downto 0);
   signal adsr_parameter : std_logic_vector(7 downto 0);
   
+  -- ADC 
+  signal ch0_output : std_logic_vector(7 downto 0);
+  signal ch1_output : std_logic_vector(7 downto 0);
+  signal ch2_output : std_logic_vector(7 downto 0);
+  signal ch3_output : std_logic_vector(7 downto 0);
+  signal ch4_output : std_logic_vector(7 downto 0);
+  signal ch5_output : std_logic_vector(7 downto 0);
+  signal ch6_output : std_logic_vector(7 downto 0);
+  signal ch7_output : std_logic_vector(7 downto 0);
+  signal adc_shift_in  : std_logic_vector(9 downto 0);
+  
   -- LCD Signals
   signal lcd_reset : std_logic;
   signal lcd_instr : std_logic_vector(13 downto 0);
@@ -272,10 +285,25 @@ begin
   
   -- LCD Signals
   lcd_reset <= not reset;
-  lcd_instr <= adsr_envelope1&"0000";
+  --lcd_instr <= adsr_envelope1&"1010";
   lcd_wr    <= adsr_parameter; --adsr_sustain(7 downto 4)&adsr_release(7 downto 4);
   
-  LED <= "00000"&adsr_led_status;
+  adsr_attack  <= ch0_output;
+  adsr_decay   <= ch1_output;
+  adsr_sustain <= ch2_output;
+  adsr_release <= ch3_output;
+  
+  LED <= SW&"11000";--"00000"&adsr_led_status;
+    
+  lcd_instr <= adc_shift_in&"1111";  
+--  lcd_instr <= ch0_output&"000000" when SW = "000" else 
+--     ch1_output&"000001" when SW = "001" else 
+--     ch2_output&"000010" when SW = "010" else 
+--     ch3_output&"000011" when SW = "011" else
+--     ch4_output&"000100" when SW = "100" else
+--     ch5_output&"000101" when SW = "101" else
+--     ch6_output&"000110" when SW = "110" else
+--     ch7_output&"000111" when SW = "111";
   
   -- Multiplier length compliance
   wave_1_extended <= wave_1&"00000000";
@@ -431,10 +459,11 @@ begin
     spi_mosi   => adc_spi_mosi,
     spi_sck    => adc_spi_sck,
     spi_cs     => adc_spi_cs,
-    ch0_output => adsr_attack,
-    ch1_output => adsr_decay,
-    ch2_output => adsr_sustain,
-    ch3_output => adsr_release
+    ch0_output => ch0_output,
+    ch1_output => ch1_output,
+    ch2_output => ch2_output,
+    ch3_output => ch3_output,
+    shift_in  => adc_shift_in 
   );
     
   Inst_lcd: lcd 

@@ -25,6 +25,7 @@ entity adc_top_module is
   port( 
     clk      : in  std_logic;
     reset    : in  std_logic;
+    SW       : in  std_logic_vector(2 downto 0);
     spi_miso : in  std_logic;
     spi_mosi : out std_logic;
     spi_sck  : out std_logic;
@@ -87,9 +88,29 @@ end component;
 
 begin
 
-  LED         <= ch0_output(7 downto 0);
+  LED         <= SW&"00000"; --ch0_output(7 downto 0);
   reset_lcd   <= not reset; -- LCD has active low reset
-  data_in_led <= ch0_output&"000000";
+  --data_in_led <= ch0_output&"000000";
+
+--  with SW select data_in_led <=
+--    ch0_output&"000000" when "000",
+--    ch1_output&"000000" when "001",
+--    ch2_output&"000000" when "010",
+--   ch3_output&"000000" when "011",
+--    ch4_output&"000000" when "100",
+--    ch5_output&"000000" when "101",
+--    ch6_output&"000000" when "110",
+--    ch7_output&"000000" when "111";
+    
+  data_in_led <= ch0_output&"000000" when SW = "000" else 
+     ch1_output&"000001" when SW = "001" else 
+     ch2_output&"000010" when SW = "010" else 
+     ch3_output&"000011" when SW = "011" else
+     ch4_output&"000100" when SW = "100" else
+     ch5_output&"000101" when SW = "101" else
+     ch6_output&"000110" when SW = "110" else
+     ch7_output&"000111" when SW = "111";
+
 
   Inst_lcd: lcd 
   port map(

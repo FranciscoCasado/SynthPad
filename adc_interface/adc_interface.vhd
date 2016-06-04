@@ -36,7 +36,8 @@ entity adc_interface is
     ch4_output : out std_logic_vector(7 downto 0);
     ch5_output : out std_logic_vector(7 downto 0);
     ch6_output : out std_logic_vector(7 downto 0);
-    ch7_output : out std_logic_vector(7 downto 0)
+    ch7_output : out std_logic_vector(7 downto 0);
+    shift_in  : out std_logic_vector(9 downto 0)
   );
 end adc_interface;
 
@@ -82,6 +83,7 @@ begin
   ch6_output <= ch6_output_b;
   ch7_output <= ch7_output_b;
   
+  shift_in <= data_out_b;
   
   -- Clock Counter process
   process(clk, reset)
@@ -133,6 +135,8 @@ begin
     end if;
   end process;
   
+        
+  
   -- 10bit Shift Register
   process(clk_div)
   begin
@@ -140,7 +144,7 @@ begin
       read_tick <= '0';
       if(state = s_data) then
         read_tick <= not read_tick;
-        data_out_b <= data_out_b(8 downto 0)& spi_miso;
+        data_out_b <= data_out_b(8 downto 0)&spi_miso;
       end if;
     end if;
   end process;
@@ -150,6 +154,7 @@ begin
   --  - MCP3008 Reads from Din on rising edge 
   --     -> Data should be set from the FPGA during falling edge of SPI_SCK
   --  - MCP3008 sets Dout on falling edge, so FPGA should read on rising edge
+  
   process(clk_div, reset)
   begin
     if(reset = '1') then
