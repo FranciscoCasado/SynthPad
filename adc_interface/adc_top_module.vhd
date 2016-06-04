@@ -49,15 +49,15 @@ component adc_interface
     spi_mosi   : out std_logic;
     spi_sck    : out std_logic;
     spi_cs     : out std_logic;
-    ch0_output : out std_logic_vector(7 downto 0);
-    ch1_output : out std_logic_vector(7 downto 0);
-    ch2_output : out std_logic_vector(7 downto 0);
-    ch3_output : out std_logic_vector(7 downto 0);
-    ch4_output : out std_logic_vector(7 downto 0);
-    ch5_output : out std_logic_vector(7 downto 0);
-    ch6_output : out std_logic_vector(7 downto 0);
-    ch7_output : out std_logic_vector(7 downto 0);
-    shift_in  : out std_logic_vector(9 downto 0)
+    ch0_output : out std_logic_vector(9 downto 0);
+    ch1_output : out std_logic_vector(9 downto 0);
+    ch2_output : out std_logic_vector(9 downto 0);
+    ch3_output : out std_logic_vector(9 downto 0);
+    ch4_output : out std_logic_vector(9 downto 0);
+    ch5_output : out std_logic_vector(9 downto 0);
+    ch6_output : out std_logic_vector(9 downto 0);
+    ch7_output : out std_logic_vector(9 downto 0);
+    shift_in   : out std_logic_vector(9 downto 0)
   );
 end component;
 
@@ -79,14 +79,14 @@ end component;
   signal lcd_instr   : std_logic_vector(13 downto 0);
   signal lcd_wr      : std_logic_vector(7 downto 0);
   
-  signal ch0_output : std_logic_vector(7 downto 0);
-  signal ch1_output : std_logic_vector(7 downto 0);
-  signal ch2_output : std_logic_vector(7 downto 0);
-  signal ch3_output : std_logic_vector(7 downto 0);
-  signal ch4_output : std_logic_vector(7 downto 0);
-  signal ch5_output : std_logic_vector(7 downto 0);
-  signal ch6_output : std_logic_vector(7 downto 0);
-  signal ch7_output : std_logic_vector(7 downto 0);
+  signal ch0_output : std_logic_vector(9 downto 0);
+  signal ch1_output : std_logic_vector(9 downto 0);
+  signal ch2_output : std_logic_vector(9 downto 0);
+  signal ch3_output : std_logic_vector(9 downto 0);
+  signal ch4_output : std_logic_vector(9 downto 0);
+  signal ch5_output : std_logic_vector(9 downto 0);
+  signal ch6_output : std_logic_vector(9 downto 0);
+  signal ch7_output : std_logic_vector(9 downto 0);
   signal shift_in   : std_logic_vector(9 downto 0);
   
   signal spi_mosi_b : std_logic;
@@ -110,14 +110,14 @@ begin
 --    ch6_output&"000000" when "110",
 --    ch7_output&"000000" when "111";
     
-  lcd_instr <= ch0_output&"000000" when SW = "000" else 
-     ch1_output&"000001" when SW = "001" else 
-     ch2_output&"000010" when SW = "010" else 
-     ch3_output&"000011" when SW = "011" else
-     ch4_output&"000100" when SW = "100" else
-     ch5_output&"000101" when SW = "101" else
-     ch6_output&"000110" when SW = "110" else
-     ch7_output&"000111" when SW = "111";
+  lcd_instr <= ch0_output&"0000" when SW = "000" else 
+     ch1_output&"0001" when SW = "001" else 
+     ch2_output&"0010" when SW = "010" else 
+     ch3_output&"0011" when SW = "011" else
+     ch4_output&"0100" when SW = "100" else
+     ch5_output&"0101" when SW = "101" else
+     ch6_output&"0110" when SW = "110" else
+     ch7_output&"0111" when SW = "111";
      
   lcd_wr <= spi_mosi_b&spi_sck_b&shift_in(9 downto 4);
 

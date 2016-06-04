@@ -29,15 +29,15 @@ entity adc_interface is
     spi_mosi   : out std_logic;
     spi_sck    : out std_logic;
     spi_cs     : out std_logic;
-    ch0_output : out std_logic_vector(7 downto 0);
-    ch1_output : out std_logic_vector(7 downto 0);
-    ch2_output : out std_logic_vector(7 downto 0);
-    ch3_output : out std_logic_vector(7 downto 0);
-    ch4_output : out std_logic_vector(7 downto 0);
-    ch5_output : out std_logic_vector(7 downto 0);
-    ch6_output : out std_logic_vector(7 downto 0);
-    ch7_output : out std_logic_vector(7 downto 0);
-    shift_in  : out std_logic_vector(9 downto 0)
+    ch0_output : out std_logic_vector(9 downto 0);
+    ch1_output : out std_logic_vector(9 downto 0);
+    ch2_output : out std_logic_vector(9 downto 0);
+    ch3_output : out std_logic_vector(9 downto 0);
+    ch4_output : out std_logic_vector(9 downto 0);
+    ch5_output : out std_logic_vector(9 downto 0);
+    ch6_output : out std_logic_vector(9 downto 0);
+    ch7_output : out std_logic_vector(9 downto 0);
+    shift_in   : out std_logic_vector(9 downto 0)
   );
 end adc_interface;
 
@@ -59,23 +59,20 @@ architecture Behavioral of adc_interface is
   signal data_out_b : std_logic_vector(9 downto 0);
   signal data_out   : std_logic_vector(9 downto 0);
   
-  signal ch0_output_b : std_logic_vector(7 downto 0);
-  signal ch1_output_b : std_logic_vector(7 downto 0);
-  signal ch2_output_b : std_logic_vector(7 downto 0);
-  signal ch3_output_b : std_logic_vector(7 downto 0);
-  signal ch4_output_b : std_logic_vector(7 downto 0);
-  signal ch5_output_b : std_logic_vector(7 downto 0);
-  signal ch6_output_b : std_logic_vector(7 downto 0);
-  signal ch7_output_b : std_logic_vector(7 downto 0);
+  signal ch0_output_b : std_logic_vector(9 downto 0);
+  signal ch1_output_b : std_logic_vector(9 downto 0);
+  signal ch2_output_b : std_logic_vector(9 downto 0);
+  signal ch3_output_b : std_logic_vector(9 downto 0);
+  signal ch4_output_b : std_logic_vector(9 downto 0);
+  signal ch5_output_b : std_logic_vector(9 downto 0);
+  signal ch6_output_b : std_logic_vector(9 downto 0);
+  signal ch7_output_b : std_logic_vector(9 downto 0);
   
   signal read_tick : std_logic;
-  signal spi_mosi_b : std_logic := '0';
 
 begin
   spi_sck  <= clk_div;
-  spi_mosi <= spi_mosi_b;
-  
-  --ch0_output <= data_out(9 downto 2);
+
   ch0_output <= ch0_output_b;
   ch1_output <= ch1_output_b;
   ch2_output <= ch2_output_b;
@@ -127,7 +124,7 @@ begin
     elsif(state = s_null) then
       state_next <= s_data;
     elsif(state = s_data) then
-      if(data_counter = 9) then
+      if(data_counter = 10) then-- 9
         state_next <= s_stop;
       else
         state_next <= s_data;
@@ -170,46 +167,43 @@ begin
       spi_cs       <= '0';
       
       if(state = s_start) then
-        --spi_mosi <= '1'; -- Start is the first time SPI_CLK is high with SPI_MOSI high and CS low
         ch_addr <= ch_addr + 1;
-        spi_mosi_b <= '1';
+        spi_mosi <= '1'; -- Start is the first time SPI_CLK is high with SPI_MOSI high and CS low
       elsif(state = s_conf) then
-        --spi_mosi <= '0';   -- high stands for single-ended measure
-        spi_mosi_b <= '1';
+        spi_mosi <= '1'; -- high stands for single-ended measure
       elsif(state = s_addr) then
         addr_counter <= addr_counter + 1;
-        spi_mosi_b <= ch_addr(2-to_integer(addr_counter)); 
+        spi_mosi <= ch_addr(2-to_integer(addr_counter)); -- Channel MSB is FIST
       elsif(state = s_dontcare) then
-        spi_mosi_b <= '0';
+        spi_mosi <= '0';
       elsif(state = s_null) then
-        spi_mosi_b <= '0';
+        spi_mosi <= '0';
       elsif(state = s_data) then
         data_counter <= data_counter + 1;
-        spi_mosi_b <= '0';
+        spi_mosi <= '0';
       elsif(state = s_stop) then -- stop
         data_out <= data_out_b;
         spi_cs <= '1';
-        spi_mosi_b <= '0';
+        spi_mosi <= '0';
         
-        -- This seems to be OK
         if(ch_addr = 0) then
-          ch0_output_b <= data_out_b(9 downto 2);
+          ch0_output_b <= data_out_b;
         elsif(ch_addr = 1) then
-          ch1_output_b <= data_out_b(9 downto 2);
+          ch1_output_b <= data_out_b;
         elsif(ch_addr = 2) then
-          ch2_output_b <= data_out_b(9 downto 2);
+          ch2_output_b <= data_out_b;
         elsif(ch_addr = 3) then
-          ch3_output_b <= data_out_b(9 downto 2);
+          ch3_output_b <= data_out_b;
         elsif(ch_addr = 4) then
-          ch4_output_b <= data_out_b(9 downto 2);
+          ch4_output_b <= data_out_b;
         elsif(ch_addr = 5) then
-          ch5_output_b <= data_out_b(9 downto 2);
+          ch5_output_b <= data_out_b;
         elsif(ch_addr = 6) then
-          ch6_output_b <= data_out_b(9 downto 2);
+          ch6_output_b <= data_out_b;
         elsif(ch_addr = 7) then
-          ch7_output_b <= data_out_b(9 downto 2);
+          ch7_output_b <= data_out_b;
         else
-          ch0_output_b <= "10101010";
+          ch0_output_b <= "1010101010";
         end if;
 
       end if;
