@@ -72,7 +72,9 @@ architecture Behavioral of adc_interface is
   signal spi_mosi_b : std_logic := '0';
 
 begin
-  spi_sck <= clk_div;
+  spi_sck  <= clk_div;
+  spi_mosi <= spi_mosi_b;
+  
   --ch0_output <= data_out(9 downto 2);
   ch0_output <= ch0_output_b;
   ch1_output <= ch1_output_b;
@@ -176,7 +178,7 @@ begin
         spi_mosi_b <= '1';
       elsif(state = s_addr) then
         addr_counter <= addr_counter + 1;
-        spi_mosi_b <= ch_addr(to_integer(addr_counter)); 
+        spi_mosi_b <= ch_addr(2-to_integer(addr_counter)); 
       elsif(state = s_dontcare) then
         spi_mosi_b <= '0';
       elsif(state = s_null) then
@@ -189,7 +191,7 @@ begin
         spi_cs <= '1';
         spi_mosi_b <= '0';
         
-
+        -- This seems to be OK
         if(ch_addr = 0) then
           ch0_output_b <= data_out_b(9 downto 2);
         elsif(ch_addr = 1) then
