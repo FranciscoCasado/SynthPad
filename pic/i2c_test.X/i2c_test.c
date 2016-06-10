@@ -12,7 +12,6 @@
 #include <ctype.h>  // Are you processing ASCII chars?
 #include <math.h>  // Are you going to be using these relatively slow math functions?
 #include <plib.h>
-#include <i2c.h>  // Should work
 /*
  * 
  */
@@ -33,9 +32,10 @@ void main(void){
   
 
     // Example from datasheet, page 1123;
-    unsigned char sync_mode, slew, add1;
+    unsigned char sync_mode, slew, add0, add1;
 
-    add1 = ( 0x70 << 1 ) & 0xfe; //address of the device (slave) under communication
+    add0 = ( 0x70 << 1 ) & 0xfe; //address of the device (slave) under communication
+    add1 = ( 0x71 << 1 ) & 0xfe; //address of the device (slave) under communication
     //CloseI2C(); //close i2c if was operating earlier
     
     //---INITIALISE THE I2C MODULE FOR MASTER MODE WITH 100KHz ---
@@ -49,9 +49,9 @@ void main(void){
 
     StartI2C();
     IdleI2C();
-    WriteI2C( add1 ) ; // call address
+    WriteI2C( add0 );   // call address
     IdleI2C();
-    WriteI2C( 0x21 );
+    WriteI2C( 0x21 );   // Turn matrix oscillator ON
     IdleI2C();
     StopI2C();
 
@@ -60,12 +60,30 @@ void main(void){
 
     StartI2C();
     IdleI2C();
-    WriteI2C( add1 ) ; // call address
+    WriteI2C( add0 );   // call address
     IdleI2C();
-    WriteI2C( 0x85 );
+    WriteI2C( 0x81 );   // Set blink freq
     IdleI2C();
     StopI2C();
 
+
+    IdleI2C();
+    StartI2C();
+    IdleI2C();
+    WriteI2C( add1 );   // call address
+    IdleI2C();
+    WriteI2C( 0x21 );   // Turn matrix oscillator ON
+    IdleI2C();
+    StopI2C();
+
+    IdleI2C();
+    StartI2C();
+    IdleI2C();
+    WriteI2C( add1 );   // call address
+    IdleI2C();
+    WriteI2C( 0x81 );   // Set blink freq
+    IdleI2C();
+    StopI2C();
 
 
     CloseI2C();
