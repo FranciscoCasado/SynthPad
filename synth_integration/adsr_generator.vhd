@@ -57,9 +57,9 @@ architecture Behavioral of adsr_generator is
   signal release_u : unsigned(7 downto 0);
   signal sustain_u : unsigned(9 downto 0);
   
-  signal counter         : unsigned(17 downto 0);
-  signal counter_limit   : std_logic_vector(17 downto 0);
-  signal counter_limit_u : unsigned(17 downto 0);
+  signal counter         : unsigned(14 downto 0);
+  signal counter_limit   : std_logic_vector(14 downto 0);
+  signal counter_limit_u : unsigned(14 downto 0);
   signal counter_tick : std_logic;
 
 begin
@@ -78,7 +78,7 @@ begin
     "011" when state_release,
     "111" when others;
   
-  parameter <= counter_limit(17 downto 10);
+  --parameter <= counter_limit(15 downto 10);
   --with state select parameter <= 
    -- attack_b   when state_attack,
   --  decay_b    when state_decay,
@@ -87,11 +87,11 @@ begin
   --  "11001100" when others;
     
   with state select counter_limit <= 
-    attack_b&"0000000000"   when state_attack,
-    decay_b&"0000000000"    when state_decay,
-    sustain_b(9 downto 2)&"0000000000"  when state_sustain,
-    release_b&"0000000000"  when state_release,
-    "111111111111111111" when others;
+    attack_b&"0000000"   when state_attack,
+    decay_b&"0000000"    when state_decay,
+    sustain_b(9 downto 2)&"0000000"  when state_sustain,
+    release_b&"0000000"  when state_release,
+    "111111111111111" when others;
   
   -- Next State Sequential Logic
   process(clk, reset)

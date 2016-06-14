@@ -152,42 +152,42 @@ architecture Behavioral of synth_top_module is
     spi_mosi   : out std_logic;
     spi_sck    : out std_logic;
     spi_cs     : out std_logic;
-    ch0_output : out std_logic_vector(7 downto 0);
-    ch1_output : out std_logic_vector(7 downto 0);
-    ch2_output : out std_logic_vector(7 downto 0);
-    ch3_output : out std_logic_vector(7 downto 0);
-    ch4_output : out std_logic_vector(7 downto 0);
-    ch5_output : out std_logic_vector(7 downto 0);
-    ch6_output : out std_logic_vector(7 downto 0);
-    ch7_output : out std_logic_vector(7 downto 0);
+    ch0_output : out std_logic_vector(9 downto 0);
+    ch1_output : out std_logic_vector(9 downto 0);
+    ch2_output : out std_logic_vector(9 downto 0);
+    ch3_output : out std_logic_vector(9 downto 0);
+    ch4_output : out std_logic_vector(9 downto 0);
+    ch5_output : out std_logic_vector(9 downto 0);
+    ch6_output : out std_logic_vector(9 downto 0);
+    ch7_output : out std_logic_vector(9 downto 0);
     shift_in  : out std_logic_vector(9 downto 0)
   );
   end component;
   
-  component lcd
+  component lcd_interface
   port(
-    clk         : in  std_logic;
-    rst         : in  std_logic;
-    test_lcd    : in  std_logic_vector(13 downto 0);
-    test_lcd_wr : in  std_logic_vector(7 downto 0);          
-    SF_D        : out std_logic_vector(11 downto 8);
-    LCD_E       : out std_logic;
-    LCD_RS      : out std_logic;
-    LCD_RW      : out std_logic;
-    SF_CE0      : out std_logic
+    clk          : in  std_logic;
+    rst          : in  std_logic;
+    upper_screen : in  std_logic_vector(15 downto 0);
+    lower_screen : in  std_logic_vector(15 downto 0);          
+    SF_D         : out std_logic_vector(11 downto 8);
+    LCD_E        : out std_logic;
+    LCD_RS       : out std_logic;
+    LCD_RW       : out std_logic;
+    SF_CE0       : out std_logic
   );
   end component;
   
   component adsr_generator
 	port(
-    clk           : in std_logic;
-    reset         : in std_logic;
-    note_on_tick  : in std_logic;
-    note_off_tick : in std_logic;
-    attack        : in std_logic_vector(7 downto 0);
-    decay         : in std_logic_vector(7 downto 0);
-    sustain       : in std_logic_vector(7 downto 0);
-    release       : in std_logic_vector(7 downto 0);          
+    clk           : in  std_logic;
+    reset         : in  std_logic;
+    note_on_tick  : in  std_logic;
+    note_off_tick : in  std_logic;
+    attack        : in  std_logic_vector(7 downto 0);
+    decay         : in  std_logic_vector(7 downto 0);
+    sustain       : in  std_logic_vector(7 downto 0);
+    release       : in  std_logic_vector(7 downto 0);          
     envelope      : out std_logic_vector(9 downto 0);
     led_status    : out std_logic_vector(2 downto 0);
     parameter     : out std_logic_vector(7 downto 0);
@@ -258,52 +258,52 @@ architecture Behavioral of synth_top_module is
   signal note_off_tick : std_logic_vector(3 downto 0);
   
   -- ADSR Generator - Output Signals
-  signal adsr_envelope1 : std_logic_vector(9 downto 0);
-  signal adsr_envelope2 : std_logic_vector(9 downto 0);
-  signal adsr_envelope3 : std_logic_vector(9 downto 0);
-  signal adsr_envelope4 : std_logic_vector(9 downto 0);
+  signal adsr_envelope_1 : std_logic_vector(9 downto 0);
+  signal adsr_envelope_2 : std_logic_vector(9 downto 0);
+  signal adsr_envelope_3 : std_logic_vector(9 downto 0);
+  signal adsr_envelope_4 : std_logic_vector(9 downto 0);
+  
+  signal adsr_envelope_1_extended : std_logic_vector(17 downto 0);
+  signal adsr_envelope_2_extended : std_logic_vector(17 downto 0);
+  signal adsr_envelope_3_extended : std_logic_vector(17 downto 0);
+  signal adsr_envelope_4_extended : std_logic_vector(17 downto 0);
+  
   signal adsr_led_status : std_logic_vector(2 downto 0);
   signal adsr_parameter : std_logic_vector(7 downto 0);
   
+  -- ADSR Multiplier Signals
+  signal mult_adsr_1_output : std_logic_vector(35 downto 0);
+  signal mult_adsr_2_output : std_logic_vector(35 downto 0);
+  signal mult_adsr_3_output : std_logic_vector(35 downto 0);
+  signal mult_adsr_4_output : std_logic_vector(35 downto 0);
+  
   -- ADC 
-  signal ch0_output : std_logic_vector(7 downto 0);
-  signal ch1_output : std_logic_vector(7 downto 0);
-  signal ch2_output : std_logic_vector(7 downto 0);
-  signal ch3_output : std_logic_vector(7 downto 0);
-  signal ch4_output : std_logic_vector(7 downto 0);
-  signal ch5_output : std_logic_vector(7 downto 0);
-  signal ch6_output : std_logic_vector(7 downto 0);
-  signal ch7_output : std_logic_vector(7 downto 0);
+  signal ch0_output : std_logic_vector(9 downto 0);
+  signal ch1_output : std_logic_vector(9 downto 0);
+  signal ch2_output : std_logic_vector(9 downto 0);
+  signal ch3_output : std_logic_vector(9 downto 0);
+  signal ch4_output : std_logic_vector(9 downto 0);
+  signal ch5_output : std_logic_vector(9 downto 0);
+  signal ch6_output : std_logic_vector(9 downto 0);
+  signal ch7_output : std_logic_vector(9 downto 0);
   signal adc_shift_in  : std_logic_vector(9 downto 0);
   
   -- LCD Signals
-  signal lcd_reset : std_logic;
-  signal lcd_instr : std_logic_vector(13 downto 0);
-  signal lcd_wr    : std_logic_vector(7 downto 0);
+  signal lcd_upper : std_logic_vector(15 downto 0);
+  signal lcd_lower : std_logic_vector(15 downto 0);
   
 begin
   
-  -- LCD Signals
-  lcd_reset <= not reset;
-  --lcd_instr <= adsr_envelope1&"1010";
-  lcd_wr    <= adsr_parameter; --adsr_sustain(7 downto 4)&adsr_release(7 downto 4);
+  adsr_attack  <= ch0_output(9 downto 2);
+  adsr_decay   <= ch1_output(9 downto 2);
+  adsr_sustain <= ch2_output(9 downto 2);
+  adsr_release <= ch3_output(9 downto 2);
   
-  adsr_attack  <= ch0_output;
-  adsr_decay   <= ch1_output;
-  adsr_sustain <= ch2_output;
-  adsr_release <= ch3_output;
-  
-  LED <= SW&"11000";--"00000"&adsr_led_status;
+  LED <= mult_adsr_1_output(35 downto 28);--SW&"11000";--"00000"&adsr_led_status;
     
-  lcd_instr <= adc_shift_in&"1111";  
---  lcd_instr <= ch0_output&"000000" when SW = "000" else 
---     ch1_output&"000001" when SW = "001" else 
---     ch2_output&"000010" when SW = "010" else 
---     ch3_output&"000011" when SW = "011" else
---     ch4_output&"000100" when SW = "100" else
---     ch5_output&"000101" when SW = "101" else
---     ch6_output&"000110" when SW = "110" else
---     ch7_output&"000111" when SW = "111";
+  lcd_upper <= mult_vel_1_output(35 downto 20);--adsr_attack&adsr_decay;
+  lcd_lower <= adsr_envelope_1&"000000";--adsr_sustain&adsr_release;
+  
   
   -- Multiplier length compliance
   wave_1_extended <= wave_1&"00000000";
@@ -315,6 +315,11 @@ begin
   vel2_extended <= note_vel2&"00000000000";
   vel3_extended <= note_vel3&"00000000000";
   vel4_extended <= note_vel4&"00000000000";
+  
+  adsr_envelope_1_extended <= adsr_envelope_1&"00000000";
+  adsr_envelope_2_extended <= adsr_envelope_2&"00000000";
+  adsr_envelope_3_extended <= adsr_envelope_3&"00000000";
+  adsr_envelope_4_extended <= adsr_envelope_4&"00000000";
 
   -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
@@ -371,11 +376,11 @@ begin
   
   Inst_wave_mixer: wave_mixer 
   port map(
-    ctrl     => decoder_wave_ctrl,
-    wave_1   => adsr_envelope1,--mult_vel_1_output(35 downto 26),
-    wave_2   => adsr_envelope2,--mult_vel_2_output(35 downto 26),
-    wave_3   => adsr_envelope3,--mult_vel_3_output(35 downto 26),
-    wave_4   => adsr_envelope4,--mult_vel_4_output(35 downto 26),
+    ctrl     => "1111", --decoder_wave_ctrl
+    wave_1   => mult_adsr_1_output(35 downto 26),--mult_adsr_1_output(35 downto 26),
+    wave_2   => mult_adsr_2_output(35 downto 26),--mult_adsr_2_output(35 downto 26),
+    wave_3   => mult_adsr_3_output(35 downto 26),--mult_adsr_3_output(35 downto 26),
+    wave_4   => mult_adsr_4_output(35 downto 26),--mult_adsr_4_output(35 downto 26),
     wave_out => wave_out 
 	);
   
@@ -451,6 +456,38 @@ begin
     p   => mult_vel_4_output
   );
   
+  Inst_multiplier_adsr_1 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => mult_vel_1_output(35 downto 18),--mult_vel_1_output(35 downto 18),
+    b   => adsr_envelope_1_extended,--adsr_envelope_extended_1,
+    p   => mult_adsr_1_output
+  );
+  
+  Inst_multiplier_adsr_2 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => mult_vel_2_output(35 downto 18),
+    b   => adsr_envelope_2_extended,
+    p   => mult_adsr_2_output
+  );
+  
+  Inst_multiplier_adsr_3 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => mult_vel_3_output(35 downto 18),
+    b   => adsr_envelope_3_extended,
+    p   => mult_adsr_3_output
+  );
+  
+  Inst_multiplier_adsr_4 : multiplier_wave
+  port map(
+    clk => clk,
+    a   => mult_vel_4_output(35 downto 18),
+    b   => adsr_envelope_4_extended,
+    p   => mult_adsr_4_output
+  );
+  
   Inst_adc_interface: adc_interface 
   port map(
     clk        => clk,
@@ -466,17 +503,17 @@ begin
     shift_in  => adc_shift_in 
   );
     
-  Inst_lcd: lcd 
+  Inst_lcd: lcd_interface 
   port map(
-    clk         => clk,
-    rst         => lcd_reset,
-    test_lcd    => lcd_instr,
-    test_lcd_wr => lcd_wr,
-    SF_D        => SF_D,
-    LCD_E       => LCD_E,
-    LCD_RS      => LCD_RS,
-    LCD_RW      => LCD_RW,
-    SF_CE0      => SF_CE0 
+    clk          => clk,
+    rst          => reset,
+    upper_screen => lcd_upper,
+    lower_screen => lcd_lower,
+    SF_D         => SF_D,
+    LCD_E        => LCD_E,
+    LCD_RS       => LCD_RS,
+    LCD_RW       => LCD_RW,
+    SF_CE0       => SF_CE0 
 	);
   
   Inst_adsr_generator_1: adsr_generator 
@@ -489,7 +526,7 @@ begin
     decay         => adsr_decay,
     sustain       => adsr_sustain,
     release       => adsr_release,
-    envelope      => adsr_envelope1,
+    envelope      => adsr_envelope_1,
     led_status    => adsr_led_status,
     parameter     => adsr_parameter,
     tick => tick
@@ -503,9 +540,9 @@ begin
     note_off_tick => note_off_tick(1),
     attack        => adsr_attack,
     decay         => adsr_decay,
-    sustain       => "10000000",
+    sustain       => adsr_sustain,
     release       => adsr_release,
-    envelope      => adsr_envelope2
+    envelope      => adsr_envelope_2
 	);
   
   Inst_adsr_generator_3: adsr_generator 
@@ -516,9 +553,9 @@ begin
     note_off_tick => note_off_tick(2),
     attack        => adsr_attack,
     decay         => adsr_decay,
-    sustain       => "10000000",
+    sustain       => adsr_sustain,
     release       => adsr_release,
-    envelope      => adsr_envelope3
+    envelope      => adsr_envelope_3
 	);
   
   Inst_adsr_generator_4: adsr_generator 
@@ -529,9 +566,9 @@ begin
     note_off_tick => note_off_tick(3),
     attack        => adsr_attack,
     decay         => adsr_decay,
-    sustain       => "10000000",
+    sustain       => adsr_sustain,
     release       => adsr_release,
-    envelope      => adsr_envelope4
+    envelope      => adsr_envelope_4
 	);
 
 end Behavioral;

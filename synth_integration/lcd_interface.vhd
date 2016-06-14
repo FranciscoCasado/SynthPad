@@ -30,23 +30,22 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity lcd_interface is
-  port( 
-    clk    		   :  in std_logic;
-    rst    		   :  in std_logic;
-    upper_screen :  in std_logic_vector(15 downto 0);
-    lower_screen :  in std_logic_vector(15 downto 0);
-    SF_D   		   : out std_logic_vector(11 downto 8);
-    LCD_E  		   : out std_logic; 
-    LCD_RS 		   : out std_logic; 
-    LCD_RW 		   : out std_logic;
-    SF_CE0 		   : out std_logic
-  );
+    port( 
+        clk    		: in std_logic;
+        rst    		: in std_logic;
+        upper_screen : in std_logic_vector(15 downto 0);
+        lower_screen : in std_logic_vector(15 downto 0);
+        SF_D   		: out std_logic_vector(11 downto 8);
+        LCD_E  		: out std_logic; 
+        LCD_RS 		: out std_logic; 
+        LCD_RW 		: out std_logic;
+        SF_CE0 		: out std_logic);
 end lcd_interface;
 
 architecture rtl of lcd_interface is

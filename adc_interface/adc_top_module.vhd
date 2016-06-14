@@ -65,8 +65,8 @@ component lcd
   port(
     clk         : in  std_logic;
     rst         : in  std_logic;
-    test_lcd    : in  std_logic_vector(13 downto 0);
-    test_lcd_wr : in  std_logic_vector(7 downto 0);          
+    test_lcd    : in  std_logic_vector(15 downto 0);
+    test_lcd_wr : in  std_logic_vector(15 downto 0);          
     SF_D        : out std_logic_vector(11 downto 8);
     LCD_E       : out std_logic;
     LCD_RS      : out std_logic;
@@ -76,8 +76,8 @@ component lcd
 end component;
   
   signal reset_lcd   : std_logic;
-  signal lcd_instr   : std_logic_vector(13 downto 0);
-  signal lcd_wr      : std_logic_vector(7 downto 0);
+  signal lcd_instr   : std_logic_vector(15 downto 0);
+  signal lcd_wr      : std_logic_vector(15 downto 0);
   
   signal ch0_output : std_logic_vector(9 downto 0);
   signal ch1_output : std_logic_vector(9 downto 0);
@@ -110,16 +110,17 @@ begin
 --    ch6_output&"000000" when "110",
 --    ch7_output&"000000" when "111";
     
-  lcd_instr <= ch0_output&"0000" when SW = "000" else 
-     ch1_output&"0001" when SW = "001" else 
-     ch2_output&"0010" when SW = "010" else 
-     ch3_output&"0011" when SW = "011" else
-     ch4_output&"0100" when SW = "100" else
-     ch5_output&"0101" when SW = "101" else
-     ch6_output&"0110" when SW = "110" else
-     ch7_output&"0111" when SW = "111";
+--  lcd_instr <= ch0_output&"0000" when SW = "000" else 
+--     ch1_output&"000001" when SW = "001" else 
+--     ch2_output&"000010" when SW = "010" else 
+--     ch3_output&"000011" when SW = "011" else
+--     ch4_output&"000100" when SW = "100" else
+--     ch5_output&"000101" when SW = "101" else
+--     ch6_output&"000110" when SW = "110" else
+--     ch7_output&"000111" when SW = "111";
      
-  lcd_wr <= spi_mosi_b&spi_sck_b&shift_in(9 downto 4);
+  lcd_wr <= "1010101010101010";
+  lcd_wr <= "1010101010101010";--spi_mosi_b&spi_sck_b&shift_in(9 downto 4);
 
 
   Inst_lcd: lcd 

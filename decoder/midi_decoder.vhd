@@ -31,25 +31,25 @@ use ieee.std_logic_1164.all;
 
 entity midi_decoder is
   port( 
-    clk       : in  std_logic;
-    reset     : in  std_logic;
-    byte_in   : in  std_logic_vector(7 downto 0);
-    tick      : in  std_logic;
-    wave_ctrl : out std_logic_vector(3 downto 0);
-    note_sel1 : out std_logic_vector(6 downto 0);
-    wave_sel1 : out std_logic_vector(1 downto 0);
-    note_sel2 : out std_logic_vector(6 downto 0);
-    wave_sel2 : out std_logic_vector(1 downto 0);
-    note_sel3 : out std_logic_vector(6 downto 0);
-    wave_sel3 : out std_logic_vector(1 downto 0);
-    note_sel4 : out std_logic_vector(6 downto 0);
-    wave_sel4 : out std_logic_vector(1 downto 0);
-    status_out : out std_logic_vector(7 downto 0);
-    note_vel1 : out std_logic_vector(6 downto 0);
-    note_vel2 : out std_logic_vector(6 downto 0);
-    note_vel3 : out std_logic_vector(6 downto 0);
-    note_vel4 : out std_logic_vector(6 downto 0);
-    note_on_tick : out std_logic_vector(3 downto 0);
+    clk           : in  std_logic;
+    reset         : in  std_logic;
+    byte_in       : in  std_logic_vector(7 downto 0);
+    tick          : in  std_logic;
+    wave_ctrl     : out std_logic_vector(3 downto 0);
+    note_sel1     : out std_logic_vector(6 downto 0);
+    wave_sel1     : out std_logic_vector(1 downto 0);
+    note_sel2     : out std_logic_vector(6 downto 0);
+    wave_sel2     : out std_logic_vector(1 downto 0);
+    note_sel3     : out std_logic_vector(6 downto 0);
+    wave_sel3     : out std_logic_vector(1 downto 0);
+    note_sel4     : out std_logic_vector(6 downto 0);
+    wave_sel4     : out std_logic_vector(1 downto 0);
+    status_out    : out std_logic_vector(7 downto 0);
+    note_vel1     : out std_logic_vector(6 downto 0);
+    note_vel2     : out std_logic_vector(6 downto 0);
+    note_vel3     : out std_logic_vector(6 downto 0);
+    note_vel4     : out std_logic_vector(6 downto 0);
+    note_on_tick  : out std_logic_vector(3 downto 0);
     note_off_tick : out std_logic_vector(3 downto 0)
   );
 end midi_decoder;
@@ -89,7 +89,7 @@ type byte_state is (
   signal note_vel4_b : std_logic_vector(6 downto 0);
   
   signal instruction_tick : std_logic;
-  signal channel_message : std_logic;
+  signal channel_message  : std_logic;
   
   signal device_channel : std_logic_vector(3 downto 0) := "0000"; -- Our Device is set to listen to channel 0 !
   signal note     : std_logic_vector(6 downto 0);
@@ -297,22 +297,22 @@ begin
               debug <= '1';
               if(note_sel1_b = note) then
                 wave_ctrl_b(0) <= '0';
-                note_vel1_b    <= vel;
+                --note_vel1_b    <= (others => '0'); --vel
                 note_off_tick_b(0) <= '1';
               end if;
               if(note_sel2_b = note) then
                 wave_ctrl_b(1) <= '0';
-                note_vel2_b    <= vel;
+                --note_vel2_b    <= (others => '0'); --vel
                 note_off_tick_b(1) <= '1';
               end if;
               if(note_sel3_b = note) then
                 wave_ctrl_b(2) <= '0';
-                note_vel3_b    <= vel;
+                --note_vel3_b    <= (others => '0'); --vel
                 note_off_tick_b(2) <= '1';
               end if;
               if(note_sel4_b = note) then
                 wave_ctrl_b(3) <= '0';
-                note_vel4_b    <= vel;
+                --note_vel4_b    <= (others => '0'); --vel
                 note_off_tick_b(3) <= '1';
               end if;  
             else

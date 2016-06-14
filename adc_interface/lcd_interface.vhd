@@ -30,15 +30,17 @@ use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity lcd is
-  port( clk    		: in std_logic;
-        rst    		: in std_logic;
-		  test_lcd		: std_logic_vector(13 downto 0);
-		  test_lcd_wr	: std_logic_vector(7 downto 0);
-        SF_D   		: out std_logic_vector(11 downto 8);
-        LCD_E  		: out std_logic; 
-        LCD_RS 		: out std_logic; 
-        LCD_RW 		: out std_logic;
-        SF_CE0 		: out std_logic);
+  port( 
+    clk    		  : in  std_logic;
+    rst    		  : in  std_logic;
+    test_lcd		: in  std_logic_vector(15 downto 0);
+    test_lcd_wr	: in  std_logic_vector(15 downto 0);
+    SF_D   		  : out std_logic_vector(11 downto 8);
+    LCD_E  		  : out std_logic; 
+    LCD_RS 		  : out std_logic; 
+    LCD_RW 		  : out std_logic;
+    SF_CE0 		  : out std_logic
+  );
 end lcd;
 
 architecture rtl of lcd is
@@ -48,14 +50,16 @@ type istate_t is (istep_one, istep_two, istep_three, istep_four, istep_five,
                   function_set, entry_mode, control_display, clear_display, 
                   init_done);
 
-type dstate_t is (didle, set_start_address, write_data_13, write_data_12,
+type dstate_t is (didle, set_start_address, 
+            write_data_15, write_data_14, write_data_13, write_data_12,
 						write_data_11, write_data_10, write_data_9, write_data_8,
 						write_data_7, write_data_6, write_data_5, write_data_4,
 						write_data_3, write_data_2, write_data_1, write_data_0, 
 						address_digit,
-						write_digit_wr_7, write_digit_wr_6, write_digit_wr_5,
-						write_digit_wr_4, write_digit_wr_3, write_digit_wr_2, 
-						write_digit_wr_1, write_digit_wr_0
+						write_digit_wr_15, write_digit_wr_14, write_digit_wr_13, write_digit_wr_12, 
+            write_digit_wr_11, write_digit_wr_10, write_digit_wr_9, write_digit_wr_8, 
+            write_digit_wr_7, write_digit_wr_6, write_digit_wr_5, write_digit_wr_4, 
+            write_digit_wr_3, write_digit_wr_2, write_digit_wr_1, write_digit_wr_0
 						); 
 
 signal istate, next_istate   : istate_t;--state and next state of the init. sm
@@ -125,143 +129,205 @@ begin
       case dstate is
         when set_start_address =>
           byte <= X"80"; -- first char of first line
+        when write_data_15 =>
+          if(test_lcd(15) = '0') then
+            byte <= X"30";
+          elsif(test_lcd(15) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_14 =>
+          if(test_lcd(14) = '0') then
+            byte <= X"30";
+          elsif(test_lcd(14) = '1') then
+            byte <= X"31";
+          end if;
         when write_data_13 =>
-		    if(test_lcd(13) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(13) = '1') then
-				byte <= X"31";
-			 end if;
+          if(test_lcd(13) = '0') then
+            byte <= X"30";
+          elsif(test_lcd(13) = '1') then
+            byte <= X"31";
+          end if;
         when write_data_12 =>
           if(test_lcd(12) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(12) = '1') then
-				byte <= X"31";
-			 end if;
+            byte <= X"30";
+          elsif(test_lcd(12) = '1') then
+            byte <= X"31";
+          end if;
         when write_data_11 =>
           if(test_lcd(11) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(11) = '1') then
-				byte <= X"31";
-			 end if;
+            byte <= X"30";
+          elsif(test_lcd(11) = '1') then
+            byte <= X"31";
+          end if;
         when write_data_10 =>
           if(test_lcd(10) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(10) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_9 =>
+            byte <= X"30";
+          elsif(test_lcd(10) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_9 =>
           if(test_lcd(9) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(9) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_8 =>
+            byte <= X"30";
+          elsif(test_lcd(9) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_8 =>
           if(test_lcd(8) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(8) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_7 =>
+            byte <= X"30";
+          elsif(test_lcd(8) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_7 =>
           if(test_lcd(7) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(7) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_6 =>
+            byte <= X"30";
+          elsif(test_lcd(7) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_6 =>
           if(test_lcd(6) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(6) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_5 =>
+            byte <= X"30";
+          elsif(test_lcd(6) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_5 =>
           if(test_lcd(5) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(5) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_4 =>
+            byte <= X"30";
+          elsif(test_lcd(5) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_4 =>
           if(test_lcd(4) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(4) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_3 =>
+            byte <= X"30";
+          elsif(test_lcd(4) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_3 =>
           if(test_lcd(3) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(3) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_2 =>
+            byte <= X"30";
+          elsif(test_lcd(3) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_2 =>
           if(test_lcd(2) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(2) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_1 =>
+            byte <= X"30";
+          elsif(test_lcd(2) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_1 =>
           if(test_lcd(1) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(1) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_data_0 =>
+            byte <= X"30";
+          elsif(test_lcd(1) = '1') then
+            byte <= X"31";
+          end if;
+        when write_data_0 =>
           if(test_lcd(0) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd(0) = '1') then
-				byte <= X"31";
-			 end if;
+            byte <= X"30";
+          elsif(test_lcd(0) = '1') then
+            byte <= X"31";
+          end if;
         when address_digit =>
           byte <= X"C0"; -- last char of the second line
+        when write_digit_wr_15 =>
+          if(test_lcd_wr(15) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(15) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_14 =>
+          if(test_lcd_wr(7) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(14) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_13 =>
+          if(test_lcd_wr(13) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(13) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_12 =>
+          if(test_lcd_wr(12) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(12) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_11 =>
+          if(test_lcd_wr(11) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(11) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_10 =>
+          if(test_lcd_wr(10) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(10) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_9 =>
+          if(test_lcd_wr(9) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(9) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_8 =>
+          if(test_lcd_wr(8) = '0') then
+            byte <= X"30";
+          elsif(test_lcd_wr(8) = '1') then
+            byte <= X"31";
+          end if;
         when write_digit_wr_7 =>
           if(test_lcd_wr(7) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(7) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_6 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(7) = '1') then
+            byte <= X"31";
+          elsif(test_lcd_wr(7) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_6 =>
           if(test_lcd_wr(6) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(6) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_5 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(6) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_5 =>
           if(test_lcd_wr(5) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(5) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_4 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(5) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_4 =>
           if(test_lcd_wr(4) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(4) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_3 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(4) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_3 =>
           if(test_lcd_wr(3) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(3) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_2 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(3) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_2 =>
           if(test_lcd_wr(2) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(2) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_1 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(2) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_1 =>
           if(test_lcd_wr(1) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(1) = '1') then
-				byte <= X"31";
-			 end if;
-		  when write_digit_wr_0 =>
+            byte <= X"30";
+          elsif(test_lcd_wr(1) = '1') then
+            byte <= X"31";
+          end if;
+        when write_digit_wr_0 =>
           if(test_lcd_wr(0) = '0') then
-				byte <= X"30";
-			 elsif(test_lcd_wr(0) = '1') then
-				byte <= X"31";
-			 end if;
+            byte <= X"30";
+          elsif(test_lcd_wr(0) = '1') then
+            byte <= X"31";
+          end if;
         when others => 
           byte <= (others => '0');      
-      end case;
+        end case;
     end if;   
    
   end process data_selector;
@@ -584,32 +650,41 @@ begin
          -- to the user needs
          --  
         
-         if (istate /= init_done or 
-            (istate = init_done and 
+        if (istate /= init_done or 
+          (istate = init_done and 
             (dstate = set_start_address or 
-             dstate = write_data_13 or 
-             dstate = write_data_12 or
-             dstate = write_data_11 or 
-             dstate = write_data_10 or
-				 dstate = write_data_9 or
-				 dstate = write_data_8 or
-				 dstate = write_data_7 or
-				 dstate = write_data_6 or
-				 dstate = write_data_5 or
-				 dstate = write_data_4 or
-				 dstate = write_data_3 or
-				 dstate = write_data_2 or
-				 dstate = write_data_1 or
-				 dstate = write_data_0 or
-             dstate = address_digit or
-             dstate = write_digit_wr_7 or
-				 dstate = write_digit_wr_6 or
-				 dstate = write_digit_wr_5 or
-				 dstate = write_digit_wr_4 or
-				 dstate = write_digit_wr_3 or
-				 dstate = write_digit_wr_2 or
-				 dstate = write_digit_wr_1 or
-				 dstate = write_digit_wr_0
+            dstate = write_data_15 or 
+            dstate = write_data_14 or 
+            dstate = write_data_13 or 
+            dstate = write_data_12 or
+            dstate = write_data_11 or 
+            dstate = write_data_10 or
+            dstate = write_data_9 or
+            dstate = write_data_8 or
+            dstate = write_data_7 or
+            dstate = write_data_6 or
+            dstate = write_data_5 or
+            dstate = write_data_4 or
+            dstate = write_data_3 or
+            dstate = write_data_2 or
+            dstate = write_data_1 or
+            dstate = write_data_0 or
+            dstate = write_digit_wr_15 or
+            dstate = write_digit_wr_14 or
+            dstate = write_digit_wr_13 or
+            dstate = write_digit_wr_12 or
+            dstate = write_digit_wr_11 or
+            dstate = write_digit_wr_10 or
+            dstate = write_digit_wr_9 or
+            dstate = write_digit_wr_8 or
+            dstate = write_digit_wr_7 or
+            dstate = write_digit_wr_6 or
+            dstate = write_digit_wr_5 or
+            dstate = write_digit_wr_4 or
+            dstate = write_digit_wr_3 or
+            dstate = write_digit_wr_2 or
+            dstate = write_digit_wr_1 or
+            dstate = write_digit_wr_0
             ))) then
           
            next_txcount <= txcount + 1;
@@ -718,148 +793,202 @@ begin
                                 -- of the LCD (0x80)  
         next_regsel <= '0';
         if (txdone = '1') then 
-          next_dstate <= write_data_13;
+          next_dstate <= write_data_15;
           next_regsel <= '1'; --must be high for write commands
         end if;      
 
-      when write_data_13 => -- V = 0x56       
-        if (txdone = '1') then 
-          next_dstate <= write_data_12;
-          next_regsel <= '1';
-        end if;
+        when write_data_15 => -- V = 0x56       
+          if(txdone = '1') then 
+            next_dstate <= write_data_14;
+            next_regsel <= '1';
+          end if;
 
-      when write_data_12 => -- H = 0x48
-        if (txdone = '1') then 
-          next_dstate <= write_data_11;
-          next_regsel <= '1';
-        end if;
+        when write_data_14 => -- V = 0x56       
+          if(txdone = '1') then 
+            next_dstate <= write_data_13;
+            next_regsel <= '1';
+          end if;
+
+        when write_data_13 => -- V = 0x56       
+          if(txdone = '1') then 
+            next_dstate <= write_data_12;
+            next_regsel <= '1';
+          end if;
+
+        when write_data_12 => -- H = 0x48
+          if(txdone = '1') then 
+            next_dstate <= write_data_11;
+            next_regsel <= '1';
+          end if;
     
-      when write_data_11 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_10;
-          next_regsel <= '1';
-        end if;
+        when write_data_11 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_10;
+            next_regsel <= '1';
+          end if;
 		
-		when write_data_10 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_9;
-          next_regsel <= '1';
-        end if;
+        when write_data_10 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_9;
+            next_regsel <= '1';
+          end if;
 		  
-		when write_data_9 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_8;
-          next_regsel <= '1';
-        end if;
+        when write_data_9 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_8;
+            next_regsel <= '1';
+          end if;
 		  
-		when write_data_8 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_7;
-          next_regsel <= '1';
-        end if;
+        when write_data_8 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_7;
+            next_regsel <= '1';
+          end if;
 		
-		when write_data_7 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_6;
-          next_regsel <= '1';
-        end if;
+        when write_data_7 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_6;
+            next_regsel <= '1';
+          end if;
 		  
-		when write_data_6 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_5;
-          next_regsel <= '1';
-        end if;
+        when write_data_6 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_5;
+            next_regsel <= '1';
+          end if;
 		  
-		when write_data_5 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_4;
-          next_regsel <= '1';
-        end if;
+        when write_data_5 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_4;
+            next_regsel <= '1';
+          end if;
 		  
-		when write_data_4 => -- D = 0x44
-        if (txdone = '1') then 
+        when write_data_4 => -- D = 0x44
+          if(txdone = '1') then 
           next_dstate <= write_data_3;
           next_regsel <= '1';
         end if;
 		  
-		when write_data_3 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_2;
-          next_regsel <= '1';
-        end if;
+        when write_data_3 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_2;
+            next_regsel <= '1';
+          end if;
 		
-		when write_data_2 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_1;
-          next_regsel <= '1';
-        end if;
+        when write_data_2 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_1;
+            next_regsel <= '1';
+          end if;
 		  
-	   when write_data_1 => -- D = 0x44
-        if (txdone = '1') then 
-          next_dstate <= write_data_0;
-          next_regsel <= '1';
-        end if;
+        when write_data_1 => -- D = 0x44
+          if(txdone = '1') then 
+            next_dstate <= write_data_0;
+            next_regsel <= '1';
+          end if;
       
-      when write_data_0 => -- L = 0x4C
-        if (txdone = '1') then 
-          next_dstate <= address_digit;
+        when write_data_0 => -- L = 0x4C
+          if(txdone = '1') then 
+            next_dstate <= address_digit;
+            next_regsel <= '0';
+          end if;
+      
+        when address_digit => -- 0x80
           next_regsel <= '0';
-        end if;
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_15;
+            next_regsel <= '1';
+          end if;
       
-      when address_digit => -- 0x80
-        next_regsel <= '0';
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_7;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_15 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_14; --return_home;
+            next_regsel <= '1';
+          end if;
+          
+        when write_digit_wr_14 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_13; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_7 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_6; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_13 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_12; --return_home;
+            next_regsel <= '1';
+          end if;
+       
+        when write_digit_wr_12 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_11; --return_home;
+            next_regsel <= '1';
+          end if;
+          
+        when write_digit_wr_11 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_10; --return_home;
+            next_regsel <= '1';
+          end if;
+          
+        when write_digit_wr_9 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_8; --return_home;
+            next_regsel <= '1';
+          end if;
+          
+        when write_digit_wr_8 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_7; --return_home;
+            next_regsel <= '1';
+          end if;
+          
+        when write_digit_wr_7 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_6; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_6 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_5; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_6 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_5; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_5 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_4; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_5 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_4; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_4 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_3; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_4 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_3; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_3 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_2; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_3 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_2; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_2 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_1; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_2 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_1; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_1 =>
-        if (txdone = '1') then 
-          next_dstate <= write_digit_wr_0; --return_home;
-          next_regsel <= '1';
-        end if;
+        when write_digit_wr_1 =>
+          if(txdone = '1') then 
+            next_dstate <= write_digit_wr_0; --return_home;
+            next_regsel <= '1';
+          end if;
       
-      when write_digit_wr_0 =>
-        if (txdone = '1') then 
-          next_dstate <= set_start_address; --return_home;
-          next_regsel <= '0';
-        end if;
+        when write_digit_wr_0 =>
+          if (txdone = '1') then 
+            next_dstate <= set_start_address; --return_home;
+            next_regsel <= '0';
+          end if;
 		
       
       --when return_home =>
