@@ -41,11 +41,11 @@ architecture Behavioral of note_generator is
   constant B1 : unsigned(10 downto 0) := TO_UNSIGNED(1011, 11);
   constant C2 : unsigned(10 downto 0) := TO_UNSIGNED(955, 11);
   
-  type MEM is array (127 downto 0) of unsigned(10 downto 0);
+  --type MEM is array (127 downto 0) of unsigned(10 downto 0);
   
   
  -- Wave generation
-  signal counter     : unsigned(15 downto 0);
+  signal counter     : unsigned(15 downto 0) := (others => '0');
   signal max_counter : unsigned(15 downto 0);
   signal map_out : std_logic_vector(15 downto 0);
   

@@ -32,7 +32,7 @@ entity adsr_generator is
     sustain       : in  std_logic_vector(7 downto 0);
     release       : in  std_logic_vector(7 downto 0);
     envelope      : out std_logic_vector(9 downto 0);
-    led_status    : out std_logic_vector(2 downto 0);
+    status        : out std_logic_vector(2 downto 0);
     parameter     : out std_logic_vector(7 downto 0);
     tick          : out std_logic
   );
@@ -71,7 +71,7 @@ begin
   release_u <= unsigned(release_b);
   sustain_u <= unsigned(sustain_b);
 
-  with state select led_status <= 
+  with state select status <= 
     "000" when state_attack,
     "001" when state_decay,
     "010" when state_sustain,

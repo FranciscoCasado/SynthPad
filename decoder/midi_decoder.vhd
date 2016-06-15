@@ -31,32 +31,23 @@ use ieee.std_logic_1164.all;
 
 entity midi_decoder is
   port( 
-    clk           : in  std_logic;
-    reset         : in  std_logic;
-    byte_in       : in  std_logic_vector(7 downto 0);
-    tick          : in  std_logic;
-    wave_ctrl     : out std_logic_vector(3 downto 0);
-    note_sel1     : out std_logic_vector(6 downto 0);
-    wave_sel1     : out std_logic_vector(1 downto 0);
-    note_sel2     : out std_logic_vector(6 downto 0);
-    wave_sel2     : out std_logic_vector(1 downto 0);
-    note_sel3     : out std_logic_vector(6 downto 0);
-    wave_sel3     : out std_logic_vector(1 downto 0);
-    note_sel4     : out std_logic_vector(6 downto 0);
-    wave_sel4     : out std_logic_vector(1 downto 0);
-    status_out    : out std_logic_vector(7 downto 0);
-    note_vel1     : out std_logic_vector(6 downto 0);
-    note_vel2     : out std_logic_vector(6 downto 0);
-    note_vel3     : out std_logic_vector(6 downto 0);
-    note_vel4     : out std_logic_vector(6 downto 0);
-    note_on_tick  : out std_logic_vector(3 downto 0);
-    note_off_tick : out std_logic_vector(3 downto 0)
+    clk                : in std_logic;
+    reset              : in std_logic;
+    byte_in            : in std_logic_vector(7 downto 0);
+    tick               : in std_logic;
+    voice_status       : in std_logic_vector(3 downto 0);
+    voice_1_ctrl_ticks : out std_logic_vector(3 downto 0);
+    voice_2_ctrl_ticks : out std_logic_vector(3 downto 0);
+    voice_3_ctrl_ticks : out std_logic_vector(3 downto 0);
+    voice_4_ctrl_ticks : out std_logic_vector(3 downto 0);
+    data_1             : out std_logic_vector(6 downto 0);
+    data_2             : out std_logic_vector(6 downto 0)
   );
 end midi_decoder;
 
 architecture Behavioral of midi_decoder is
 
-type byte_state is (
+  type byte_state is (
     idle, status, data1, data2 -- Meaning NEXT byte should be ...
   );
   
@@ -70,40 +61,28 @@ type byte_state is (
   
   signal status_msb4 : std_logic_vector(2 downto 0);
   
-  signal wave_ctrl_b : std_logic_vector(3 downto 0);
-  
-  signal note_sel1_b : std_logic_vector(6 downto 0);
-  signal wave_sel1_b : std_logic_vector(1 downto 0);
-  signal note_vel1_b : std_logic_vector(6 downto 0);
-  
-  signal note_sel2_b : std_logic_vector(6 downto 0);
-  signal wave_sel2_b : std_logic_vector(1 downto 0);
-  signal note_vel2_b : std_logic_vector(6 downto 0);
-  
-  signal note_sel3_b : std_logic_vector(6 downto 0);
-  signal wave_sel3_b : std_logic_vector(1 downto 0);
-  signal note_vel3_b : std_logic_vector(6 downto 0);
-  
-  signal note_sel4_b : std_logic_vector(6 downto 0);
-  signal wave_sel4_b : std_logic_vector(1 downto 0);
-  signal note_vel4_b : std_logic_vector(6 downto 0);
-  
   signal instruction_tick : std_logic;
-  signal channel_message  : std_logic;
+  signal CHANNEL_MESSAGE  : std_logic;
   
   signal device_channel : std_logic_vector(3 downto 0) := "0000"; -- Our Device is set to listen to channel 0 !
   signal note     : std_logic_vector(6 downto 0);
-  signal vel      : std_logic_vector(6 downto 0);
-  signal note_on  : std_logic;
-  signal note_off : std_logic;
+  --signal vel      : std_logic_vector(6 downto 0);
   
-  signal note_on_tick_b : std_logic_vector(3 downto 0);
-  signal note_off_tick_b : std_logic_vector(3 downto 0);
+  -- Voice Notes (neccesary for NOTE_OFF logic)
+  signal voice_1_note : std_logic_vector(6 downto 0);
+  signal voice_2_note : std_logic_vector(6 downto 0);
+  signal voice_3_note : std_logic_vector(6 downto 0);
+  signal voice_4_note : std_logic_vector(6 downto 0);
   
-  -- Para los multiplicadores de la fpga.
-  -- usar shift a la izq, multiplicar y tomar solo los MSB
+  -- Implemented Instruction Set
+  signal NOTE_ON        : std_logic;
+  signal NOTE_OFF       : std_logic;
+  signal PROGRAM_CHANGE : std_logic;
+  signal CONTROL_CHANGE : std_logic;
+  --signal ALL_VOICES_OFF : std_logic;
+  --signal ALL_SOUNDS_OFF : std_logic;
   
-  signal debug : std_logic;
+  --signal debug : std_logic;
   signal done : std_logic;
   signal prev_intruction_tick : std_logic;
   signal update_tick : std_logic;
@@ -112,38 +91,16 @@ begin
   -- Decoding
   status_msb4 <= status_byte(6 downto 4);
   note <= data1_byte(6 downto 0);
-  vel  <= data2_byte(6 downto 0);
+  --vel  <= data2_byte(6 downto 0);
+  data_1  <= data1_byte(6 downto 0);
+  data_2  <= data2_byte(6 downto 0);
   
-  status_out <= note_on&note_off&"00"&wave_ctrl_b;
-  
+  --status_out <= note_on&note_off&"00"&wave_ctrl_b;
   
   with status_msb4 select	is_byte_2 <= 
     '0' when "101",
     '0' when "100",
     '1' when others;
-
-  -- Estas deben ser modificadas
-  wave_ctrl <= wave_ctrl_b;
-  
-  note_sel1 <= note_sel1_b;
-  note_vel1 <= note_vel1_b;
-  wave_sel1 <= wave_sel1_b;
-  
-  note_sel2 <= note_sel2_b;
-  note_vel2 <= note_vel2_b;
-  wave_sel2 <= wave_sel2_b;
-  
-  note_sel3 <= note_sel3_b;
-  note_vel3 <= note_vel3_b;
-  wave_sel3 <= wave_sel3_b;
-  
-  note_sel4 <= note_sel4_b;
-  note_vel4 <= note_vel4_b;
-  wave_sel4 <= wave_sel4_b;
-  
-  -- Control Signals for envelope generation
-  note_on_tick <= note_on_tick_b;
-  note_off_tick <= note_off_tick_b;
   
   process(state, tick)
   begin
@@ -171,22 +128,30 @@ begin
   end process;
   
   with status_byte(6 downto 4) select	
-    channel_message <= 
+    CHANNEL_MESSAGE <= 
       '0' when "111",
       '1' when others;
       
   with status_byte(6 downto 4) select
-    note_on <=
+    NOTE_ON <=
       '1' when "001",
       '0' when others;
       
   with status_byte(6 downto 4) select
-    note_off <=
+    NOTE_OFF <=
       '1' when "000",
       '0' when others;
-      
   
-
+  with status_byte(6 downto 4) select
+    CONTROL_CHANGE <=
+      '1' when "011",
+      '0' when others;
+  
+  with status_byte(6 downto 4) select
+    PROGRAM_CHANGE <=
+      '1' when "100",
+      '0' when others;
+      
   -- State machine logic
   process(clk, reset)
   begin
@@ -251,72 +216,76 @@ begin
   process(clk, reset, instruction_tick)
   begin
     if(reset = '1') then
-      wave_ctrl_b <= "0000";
-      note_sel1_b <= "0000000";
-      wave_sel1_b <= "00";
-      note_sel2_b <= "0000000";
-      wave_sel2_b <= "00";
-      note_sel3_b <= "0000000";
-      wave_sel3_b <= "00";
-      note_sel4_b <= "0000000";
-      wave_sel4_b <= "00";
+      voice_1_note <= "0000000";
+      voice_2_note <= "0000000";
+      voice_3_note <= "0000000";
+      voice_4_note <= "0000000";
+      voice_1_ctrl_ticks <= "0000";
+      voice_2_ctrl_ticks <= "0000";
+      voice_3_ctrl_ticks <= "0000";
+      voice_4_ctrl_ticks <= "0000";
+      
       done <= '0';
+      
     elsif(clk'event and clk = '1') then --signal debug : std_logic;
-      note_on_tick_b <= "0000";
-      note_off_tick_b <= "0000";
+      voice_1_ctrl_ticks <= "0000";
+      voice_2_ctrl_ticks <= "0000";
+      voice_3_ctrl_ticks <= "0000";
+      voice_4_ctrl_ticks <= "0000";
       
       if(update_tick = '1') then
         if(done = '0') then
         
           done <= '1';
     
-          if(channel_message = '1') then
-            if(note_on = '1') then
-              if(wave_ctrl_b(0) = '0') then
-                wave_ctrl_b(0) <= '1';
-                note_sel1_b    <= note;
-                note_vel1_b    <= vel;
-                note_on_tick_b(0) <= '1';
-              elsif(wave_ctrl_b(1) = '0') then
-                wave_ctrl_b(1) <= '1';
-                note_sel2_b    <= note;
-                note_vel2_b    <= vel;
-                note_on_tick_b(1) <= '1';
-              elsif(wave_ctrl_b(2) = '0') then
-                wave_ctrl_b(2) <= '1';
-                note_sel3_b    <= note;
-                note_vel3_b    <= vel;
-                note_on_tick_b(2) <= '1';
-              elsif(wave_ctrl_b(3) = '0') then
-                wave_ctrl_b(3) <= '1';
-                note_sel4_b    <= note;
-                note_vel4_b    <= vel;
-                note_on_tick_b(3) <= '1';
+          if(CHANNEL_MESSAGE = '1') then
+            if(NOTE_ON = '1') then
+              if(voice_status(0) = '0') then
+                voice_1_ctrl_ticks(3) <= '1'; -- 3 is NOTE_ON
+                voice_1_note <= note;
+              elsif(voice_status(1) = '0') then
+                voice_2_ctrl_ticks(3) <= '1'; -- 3 is NOTE_ON
+                voice_2_note <= note;
+              elsif(voice_status(2) = '0') then
+                voice_3_ctrl_ticks(3) <= '1'; -- 3 is NOTE_ON
+                voice_3_note <= note;
+              elsif(voice_status(3) = '0') then
+                voice_4_ctrl_ticks(3) <= '1'; -- 3 is NOTE_ON
+                voice_4_note <= note;
               end if;            
-            elsif(note_off = '1') then
-              debug <= '1';
-              if(note_sel1_b = note) then
-                wave_ctrl_b(0) <= '0';
-                --note_vel1_b    <= (others => '0'); --vel
-                note_off_tick_b(0) <= '1';
+            elsif(NOTE_OFF = '1') then
+              --debug <= '1';
+              if(voice_1_note = note) then
+                voice_1_ctrl_ticks(2) <= '1'; -- 2 is NOTE_OFF
               end if;
-              if(note_sel2_b = note) then
-                wave_ctrl_b(1) <= '0';
-                --note_vel2_b    <= (others => '0'); --vel
-                note_off_tick_b(1) <= '1';
+              if(voice_2_note = note) then
+                voice_2_ctrl_ticks(2) <= '1'; -- 2 is NOTE_OFF
               end if;
-              if(note_sel3_b = note) then
-                wave_ctrl_b(2) <= '0';
-                --note_vel3_b    <= (others => '0'); --vel
-                note_off_tick_b(2) <= '1';
+              if(voice_3_note = note) then
+                voice_3_ctrl_ticks(2) <= '1'; -- 2 is NOTE_OFF
               end if;
-              if(note_sel4_b = note) then
-                wave_ctrl_b(3) <= '0';
-                --note_vel4_b    <= (others => '0'); --vel
-                note_off_tick_b(3) <= '1';
-              end if;  
+              if(voice_4_note = note) then
+                voice_4_ctrl_ticks(2) <= '1'; -- 2 is NOTE_OFF
+              end if;
+            elsif(CONTROL_CHANGE = '1') then
+              if(data1_byte(6 downto 0) = "1111000" and data2_byte(6 downto 0) = "00000000") then
+                voice_1_ctrl_ticks(2) <= '1';
+                voice_2_ctrl_ticks(2) <= '1';
+                voice_3_ctrl_ticks(2) <= '1';
+                voice_4_ctrl_ticks(2) <= '1';
+              else  
+                voice_1_ctrl_ticks(1) <= '1'; -- 1 is CONTROL_CHANGE
+                voice_2_ctrl_ticks(1) <= '1';
+                voice_3_ctrl_ticks(1) <= '1';
+                voice_4_ctrl_ticks(1) <= '1';
+              end if;
+            elsif(PROGRAM_CHANGE = '1') then
+              voice_1_ctrl_ticks(0) <= '1'; -- 0 is PROGRAM_CHANGE
+              voice_2_ctrl_ticks(0) <= '1';
+              voice_3_ctrl_ticks(0) <= '1';
+              voice_4_ctrl_ticks(0) <= '1';      
             else
-              debug <= '0';
+              --debug <= '0';
             end if;
           end if;
         end if;
