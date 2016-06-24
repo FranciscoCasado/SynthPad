@@ -12,6 +12,7 @@
 #include <ctype.h>  // Are you processing ASCII chars?
 #include <math.h>  // Are you going to be using these relatively slow math functions?
 #include <plib.h>
+#include "synthpad.h"
 /*
  * 
  */
@@ -22,69 +23,28 @@
 #pragma config CPB = OFF
 #pragma config CPD = OFF
 
-
 void main(void){
-    
-    TRISC = 1;
-    ADCON1 = 0x0f;
-    TRISB0 = 1;
-    TRISB1 = 1;
-  
 
-    // Example from datasheet, page 1123;
+    // Initialize by setting al registers needed
+    initialize();
+    
     unsigned char sync_mode, slew, add0, add1;
 
     add0 = ( 0x70 << 1 ) & 0xfe; //address of the device (slave) under communication
     add1 = ( 0x71 << 1 ) & 0xfe; //address of the device (slave) under communication
-    //CloseI2C(); //close i2c if was operating earlier
-    
     //---INITIALISE THE I2C MODULE FOR MASTER MODE WITH 100KHz ---
     sync_mode = MASTER;
     slew = SLEW_OFF;
+    
     OpenI2C(sync_mode,slew);
     SSPADD=0x09; //100kHz Baud clock(9) @4MHz
-    I2C_SCL;
-    //check for bus idle condition in multi master communication
-    IdleI2C();
-
-    StartI2C();
-    IdleI2C();
-    WriteI2C( add0 );   // call address
-    IdleI2C();
-    WriteI2C( 0x21 );   // Turn matrix oscillator ON
-    IdleI2C();
-    StopI2C();
-
-
-    IdleI2C();
-
-    StartI2C();
-    IdleI2C();
-    WriteI2C( add0 );   // call address
-    IdleI2C();
-    WriteI2C( 0x81 );   // Set blink freq
-    IdleI2C();
-    StopI2C();
-
-
-    IdleI2C();
-    StartI2C();
-    IdleI2C();
-    WriteI2C( add1 );   // call address
-    IdleI2C();
-    WriteI2C( 0x21 );   // Turn matrix oscillator ON
-    IdleI2C();
-    StopI2C();
-
-    IdleI2C();
-    StartI2C();
-    IdleI2C();
-    WriteI2C( add1 );   // call address
-    IdleI2C();
-    WriteI2C( 0x81 );   // Set blink freq
-    IdleI2C();
-    StopI2C();
-
-
+    TurnMatrixOn( add0 );
+    TurnMatrixOn( add1 );
+    setBlinkRate( add0, Blink_OFF );
+    setBlinkRate( add1, Blink_OFF );
+    setBrightness( add0, 10 );
+    setBrightness( add1, 10 );
     CloseI2C();
+    
 }
+
