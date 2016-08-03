@@ -17,7 +17,7 @@
  * 
  */
 #pragma config FOSC = XT_XT
-#pragma config FCMEN = OFF                                 // OR this way
+#pragma config FCMEN = OFF
 #pragma config BORV = 3
 #pragma config WDT = OFF
 #pragma config CPB = OFF
@@ -26,24 +26,17 @@
 void main(void){
 
     // Initialize by setting al registers needed
-    initialize();
-    
-    unsigned char sync_mode, slew, add0, add1;
-
-    add0 = ( 0x70 << 1 ) & 0xfe; //address of the device (slave) under communication
-    add1 = ( 0x71 << 1 ) & 0xfe; //address of the device (slave) under communication
-    //---INITIALISE THE I2C MODULE FOR MASTER MODE WITH 100KHz ---
-    sync_mode = MASTER;
-    slew = SLEW_OFF;
-    
-    OpenI2C(sync_mode,slew);
+    Init();
+    OpenI2C(MASTER,SLEW_OFF);
     SSPADD=0x09; //100kHz Baud clock(9) @4MHz
-    TurnMatrixOn( add0 );
-    TurnMatrixOn( add1 );
-    setBlinkRate( add0, Blink_OFF );
-    setBlinkRate( add1, Blink_OFF );
-    setBrightness( add0, 10 );
-    setBrightness( add1, 10 );
+
+    // Start matrices
+    TurnMatrixOn( matrix0 );
+    TurnMatrixOn( matrix1 );
+    setBlinkRate( matrix0, Blink_OFF );
+    setBlinkRate( matrix1, Blink_OFF );
+    setBrightness( matrix0, 10 );
+    setBrightness( matrix1, 10 );
     CloseI2C();
     
 }

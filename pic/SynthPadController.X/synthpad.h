@@ -7,13 +7,29 @@
 #include <math.h>  // Are you going to be using these relatively slow math functions?
 #include <plib.h>
 
+#define matrix0 ( 0x70 << 1 ) & 0xfe
+#define matrix1 ( 0x71 << 1 ) & 0xfe
 
 #define Blink_OFF 0x00
 #define Blink_2Hz 0x01
 #define Blink_1Hz 0x02
 #define Blink_0Hz5 0x03
 
-void initialize(void){
+const char ledLUT[] =
+    { 0x3A, 0x37, 0x35, 0x34,
+      0x28, 0x29, 0x23, 0x24,
+      0x16, 0x1B, 0x11, 0x10,
+      0x0E, 0x0D, 0x0C, 0x02 };
+
+const char buttonLUT[16] =
+    { 0x07, 0x04, 0x02, 0x22,
+      0x05, 0x06, 0x00, 0x01,
+      0x03, 0x10, 0x30, 0x21,
+      0x13, 0x12, 0x11, 0x31 };
+
+unsigned char displaybuffer[];
+
+void Init(void){
     TRISC = 1;
     ADCON1 = 0x0f;
     TRISB0 = 1;
@@ -47,16 +63,24 @@ void setBlinkRate(unsigned char address, unsigned char freq){
     WriteI2CByte(address, 0x81 | (freq << 1));
 }
 
+void setLED(unsigned char address, unsigned char k){
+    if ( k > 15)
+        return;
+    else
+        WriteI2CByte(address, 0xE0 );
+}
+
 /*
-  void blinkRate(uint8_t b);
-  void writeDisplay(void);
-  void clear(void);
-  bool isKeyPressed(uint8_t k);
-  bool wasKeyPressed(uint8_t k);
-  boolean isLED(uint8_t x);
-  void setLED(uint8_t x);
-  void clrLED(uint8_t x);
-  boolean readSwitches(void);
-  boolean justPressed(uint8_t k);
-  boolean justReleased(uint8_t k);
+  [ok] void blinkRate(uint8_t b);
+  [  ] boolean isLED(uint8_t x);
+  [  ] void setLED(uint8_t x);
+  [  ] void clrLED(uint8_t x);
+  [  ] void writeDisplay(void);
+  [  ] void clear(void);
+ *
+  [  ] bool isKeyPressed(uint8_t k);
+  [  ] bool wasKeyPressed(uint8_t k);
+  [  ] boolean readSwitches(void);
+  [  ] boolean justPressed(uint8_t k);
+  [  ] boolean justReleased(uint8_t k);
  */
