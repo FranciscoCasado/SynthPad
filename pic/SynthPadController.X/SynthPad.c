@@ -30,13 +30,27 @@ void main(void){
     OpenI2C(MASTER,SLEW_OFF);
     SSPADD=0x09; //100kHz Baud clock(9) @4MHz
 
+    // Turn all LEDs off
+    blackOut(matrix0);
+    blackOut(matrix1);
+
+    
     // Start matrices
     TurnMatrixOn( matrix0 );
     TurnMatrixOn( matrix1 );
     setBlinkRate( matrix0, Blink_OFF );
     setBlinkRate( matrix1, Blink_OFF );
-    setBrightness( matrix0, 10 );
-    setBrightness( matrix1, 10 );
+    setBrightness( matrix0, 12 );
+    setBrightness( matrix1, 4 );
+
+    for(int i = 0; i < 16 ; i++){
+        blackOut(matrix0);
+        blackOut(matrix1);
+        setLED(matrix0,i);
+        setLED(matrix1,15-i);
+        delay();
+    }
+
     CloseI2C();
     
 }

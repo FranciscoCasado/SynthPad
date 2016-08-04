@@ -15,11 +15,11 @@
 #define Blink_1Hz 0x02
 #define Blink_0Hz5 0x03
 
-const char ledLUT[] =
-    { 0x3A, 0x37, 0x35, 0x34,
-      0x28, 0x29, 0x23, 0x24,
-      0x16, 0x1B, 0x11, 0x10,
-      0x0E, 0x0D, 0x0C, 0x02 };
+const char ledLUT[] =           // Translated from Adafruit lib
+    { 0x72, 0x67, 0x65, 0x64,   // Don't mess with it... never!!!
+      0x50, 0x51, 0x43, 0x44,
+      0x26, 0x33, 0x21, 0x20,
+      0x16, 0x15, 0x14, 0x02 };
 
 const char buttonLUT[16] =
     { 0x07, 0x04, 0x02, 0x22,
@@ -47,6 +47,19 @@ void WriteI2CByte(unsigned char address, unsigned char data){
     StopI2C();              // Send Stop condition
 }
 
+void WriteI2CByteByte(unsigned char address, unsigned char data0, unsigned char data1){
+    IdleI2C();              // Wait for available bus
+    StartI2C();             // Send Start condition
+    IdleI2C();
+    WriteI2C( address );    // Call address
+    IdleI2C();
+    WriteI2C( data0 );       // Send data Byte
+    IdleI2C();
+    WriteI2C( data1 );       // Send data Byte
+    IdleI2C();
+    StopI2C();              // Send Stop condition
+}
+
 void TurnMatrixOn(unsigned char address){
     WriteI2CByte( address, 0x21 );
 }
@@ -67,8 +80,40 @@ void setLED(unsigned char address, unsigned char k){
     if ( k > 15)
         return;
     else
-        WriteI2CByte(address, 0xE0 );
+        WriteI2CByteByte(address, (ledLUT[k]&0xF0) >> 4, (1 << (ledLUT[k] & 0x0F)));
 }
+
+void blackOut(unsigned char matrix){
+    WriteI2CByteByte(matrix,0x00,0x00);
+    WriteI2CByteByte(matrix,0x01,0x00);
+    WriteI2CByteByte(matrix,0x02,0x00);
+    WriteI2CByteByte(matrix,0x03,0x00);
+    WriteI2CByteByte(matrix,0x04,0x00);
+    WriteI2CByteByte(matrix,0x05,0x00);
+    WriteI2CByteByte(matrix,0x06,0x00);
+    WriteI2CByteByte(matrix,0x07,0x00);
+}
+
+void sunnyDay(unsigned char matrix){
+    WriteI2CByteByte(matrix,0x00,0xFF);
+    WriteI2CByteByte(matrix,0x01,0xFF);
+    WriteI2CByteByte(matrix,0x02,0xFF);
+    WriteI2CByteByte(matrix,0x03,0xFF);
+    WriteI2CByteByte(matrix,0x04,0xFF);
+    WriteI2CByteByte(matrix,0x05,0xFF);
+    WriteI2CByteByte(matrix,0x06,0xFF);
+    WriteI2CByteByte(matrix,0x07,0xFF);
+
+}
+
+void delay(void){
+     int i, j;
+     for(i=0;i<5000;i++){
+         for(j=0;j<1;j++){
+         }
+     }         
+}
+
 
 /*
   [ok] void blinkRate(uint8_t b);
