@@ -70,6 +70,9 @@ void delay(int k){
 
 unsigned char displayBuffer[] =
     { 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+    
+      0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 };
 
 
@@ -89,7 +92,14 @@ void setLED(unsigned char matrix, unsigned char k){
     if ( k > 15)
         return;
     else{
-        unsigned char x = (ledLUT[k]&0xF0) >> 4;
+        unsigned char x;
+        if (matrix == matrix0 ){
+            x = (ledLUT[k]&0xF0) >> 4;
+        }
+        else{
+            x = ((ledLUT[k]&0xF0) >> 4) + 8;
+        }
+        displayBuffer[x] |= 0x01 << (ledLUT[k] & 0x0F);
         displayBuffer[x] |= 0x01 << (ledLUT[k] & 0x0F);
     }
 }
@@ -98,17 +108,45 @@ void clrLED(unsigned char matrix, unsigned char k){
     if ( k > 15)
         return;
     else{
-        unsigned char x = (ledLUT[k]&0xF0) >> 4;
+        unsigned char x;
+        if (matrix == matrix0 ){
+            x = (ledLUT[k]&0xF0) >> 4;
+        }
+        else{
+            x = ((ledLUT[k]&0xF0) >> 4) + 8;        
+        }
+        displayBuffer[x] &= 0xfe << (ledLUT[k] & 0x0F);
         displayBuffer[x] &= 0xfe << (ledLUT[k] & 0x0F);
     }
 }
 
-void display(unsigned char matrix){
+void displayBoth(void){
     OpenI2C(MASTER, SLEW_OFF);
     for(char k = 0; k < 8 ; k++ ){
-        WriteI2CByteByte(matrix, k & 0xff, displayBuffer[k]);
+        WriteI2CByteByte(matrix0, k & 0xff, displayBuffer[k]);
+        WriteI2CByteByte(matrix1, k & 0xff, displayBuffer[k+8]);
     }
     CloseI2C();
+}
+
+void clone1to0(void){
+    OpenI2C(MASTER, SLEW_OFF);
+    for(char k = 0; k < 8 ; k++ ){
+        WriteI2CByteByte(matrix0, k & 0xff, displayBuffer[k+8]);
+        WriteI2CByteByte(matrix1, k & 0xff, displayBuffer[k+8]);
+    }
+    CloseI2C();
+    
+}
+
+void clone0to1(void){
+    OpenI2C(MASTER, SLEW_OFF);
+    for(char k = 0; k < 8 ; k++ ){
+        WriteI2CByteByte(matrix0, k & 0xff, displayBuffer[k]);
+        WriteI2CByteByte(matrix1, k & 0xff, displayBuffer[k]);
+    }
+    CloseI2C();
+    
 }
 
 void blackOut(unsigned char matrix){
@@ -137,26 +175,33 @@ void sunnyDay(unsigned char matrix){
 /* KeyScan*/
 
 
-unsigned char switches[] = {0x00, 0x00, 0x00, 0x00};
-unsigned char switches_past[] = {0x00, 0x00, 0x00, 0x00};
+unsigned char switches[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+unsigned char switches_past[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 unsigned char button_state[] = 
     { 0, 0, 0, 0,
       0, 0, 0, 0,
       0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
       0, 0, 0, 0 };
 
-void ReadSwitches(unsigned char matrix){
+unsigned char button_state_past[] = 
+    { 0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0 };
+
+void ReadMatrix(unsigned char matrix){
     unsigned char byte0, byte1, byte2, byte3;
     OpenI2C(MASTER,SLEW_OFF);
-    IdleI2C();              // Wait for available bus
-    StartI2C();             // Send Start condition
-    IdleI2C();
-    WriteI2C( matrix & 0xfe);  // Call address (Write)
-    IdleI2C();
-    WriteI2C( 0x40 );          // Send data Byte
-    IdleI2C();
-    StopI2C();              // Send Stop condition
+    WriteI2CByte(matrix, 0x40);
     IdleI2C();
     StartI2C();             // Send Start condition
     WriteI2C( matrix | 0x01);  // Call address (Read)
@@ -171,12 +216,64 @@ void ReadSwitches(unsigned char matrix){
     NotAckI2C(); //send the end of transmission signal through Nack
     StopI2C();              // Send Stop condition
     CloseI2C();
-    switches[0] = byte0;
-    switches[1] = byte1;
-    switches[2] = byte2;
-    switches[3] = byte3;    
+    if (matrix == matrix0 ){
+        switches[0] = byte0;
+        switches[1] = byte1;
+        switches[2] = byte2;
+        switches[3] = byte3;
+    }
+    else {
+        switches[4] = byte0;
+        switches[5] = byte1;
+        switches[6] = byte2;
+        switches[7] = byte3;
+    }
+    
+}
+void checkSwitches(void){     
+    // Save previous state    
+    for(int i = 0; i < 8; i++){
+            switches_past[i] = switches[i];
+    }
+    // Read current state
+    ReadMatrix(matrix0);
+    ReadMatrix(matrix1);
 }
 
+void updateSwitches(unsigned char matrix){
+    for(int i = 0; i < 32; i++){
+        button_state_past[i] = button_state[i];
+    }
+    
+    unsigned char offset_switch;
+    unsigned char offset_state;
+    if(matrix == matrix0){
+        offset_switch = 0;
+        offset_state = 0;
+    }
+    else{
+        offset_switch = 4;
+        offset_state = 8;
+    }
+    for(int i = 0; i < 16 ; i++){
+        // aux variables
+        char x = ( buttonLUT[i] >> 4 ) & 0x0f;
+        char y = ( buttonLUT[i] & 0x0f );
+        // more aux variables
+        char b0 = bit(switches_past[x + offset_switch],y);
+        char b1 = bit(switches[x + offset_switch],y);
+        
+        
+        if ( b0 == 0 & b1 == 1){
+            button_state[i+offset_state] = 1;
+            setLED(matrix,i);
+        }
+        else if ( b0 == 1 & b1 == 0 ){
+            button_state[i+offset_state] = 0;
+            clrLED(matrix,i);
+        }
+    }
+}
 
 void Init(void){
     /* Set PIC registers */
@@ -206,10 +303,10 @@ void Init(void){
 /*
   [ok] void blinkRate(uint8_t b);
   [  ] boolean isLED(uint8_t x);
-  [  ] void setLED(uint8_t x);
-  [  ] void clrLED(uint8_t x);
-  [  ] void writeDisplay(void);
-  [  ] void clear(void);
+  [ok] void setLED(uint8_t x);
+  [ok] void clrLED(uint8_t x);
+  [ok] void writeDisplay(void);
+  [ok] void clear(void);
  *
   [  ] boolean isKeyPressed(uint8_t k);
   [  ] boolean wasKeyPressed(uint8_t k);

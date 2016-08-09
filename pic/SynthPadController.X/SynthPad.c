@@ -25,38 +25,23 @@
 
 void main(void){
 
-    // Initialize by setting al registers needed
+    // Initialize by setting all registers needed
     Init();
     
-    
     while(1){
-        // Matrices communication        
         
-        for(int i = 0; i < 4; i++){
-            switches_past[i] = switches[i];
-        }
-        ReadSwitches(matrix1);
-        for(int i = 0; i < 16 ; i++){
-            char x = ( buttonLUT[i] >> 4 ) & 0x0f;
-            char y = ( buttonLUT[i] & 0x0f );
-            char b0 = bit(switches_past[x],y);
-            char b1 = bit(switches[x],y);
-            if( b1 != b0 ){
-                button_state[i] = ~button_state[i];
-                if( button_state[i] == 0xff){
-                    setLED(matrix0,i);
-                    // insert send command for UART
-                    
-                } else {
-                    clrLED(matrix0,i);
-                }
-            }
-        }
-        display(matrix0);
-        display(matrix1);
+        // Check Switches
+        checkSwitches();
+        updateSwitches(matrix0);
+        updateSwitches(matrix1);
+        
+        // Do Something
+        displayBoth();
+        
+        // One of the most important instructions
         delay(1000);    // Do not remove!!
+        }
+        
               
-    }
-    
 }
-
+    
