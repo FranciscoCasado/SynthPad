@@ -14,6 +14,9 @@
 
 #define bit(x,n) (((x) >> (n)) & 1)
 
+#define state_both   0x00
+#define state_clone1 0x01
+
 const char ledLUT[] =           // Translated from Adafruit lib
     { 0x72, 0x67, 0x65, 0x64,   // Don't mess with it... never!!!
       0x50, 0x51, 0x43, 0x44,
@@ -150,6 +153,7 @@ void clone0to1(void){
 }
 
 void blackOut(unsigned char matrix){
+    OpenI2C(MASTER,SLEW_OFF);
     WriteI2CByteByte(matrix,0x00,0x00);
     WriteI2CByteByte(matrix,0x01,0x00);
     WriteI2CByteByte(matrix,0x02,0x00);
@@ -158,9 +162,11 @@ void blackOut(unsigned char matrix){
     WriteI2CByteByte(matrix,0x05,0x00);
     WriteI2CByteByte(matrix,0x06,0x00);
     WriteI2CByteByte(matrix,0x07,0x00);
+    CloseI2C();
 }
 
 void sunnyDay(unsigned char matrix){
+    OpenI2C(MASTER,SLEW_OFF);
     WriteI2CByteByte(matrix,0x00,0xFF);
     WriteI2CByteByte(matrix,0x01,0xFF);
     WriteI2CByteByte(matrix,0x02,0xFF);
@@ -169,6 +175,7 @@ void sunnyDay(unsigned char matrix){
     WriteI2CByteByte(matrix,0x05,0xFF);
     WriteI2CByteByte(matrix,0x06,0xFF);
     WriteI2CByteByte(matrix,0x07,0xFF);
+    CloseI2C();
 }
 
 
@@ -253,7 +260,7 @@ void updateSwitches(unsigned char matrix){
     }
     else{
         offset_switch = 4;
-        offset_state = 8;
+        offset_state = 16;
     }
     for(int i = 0; i < 16 ; i++){
         // aux variables

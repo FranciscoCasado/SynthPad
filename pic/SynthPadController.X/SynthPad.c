@@ -1,6 +1,6 @@
 /* 
  * File:   i2c_test.c
- * Author: PC4-Electronica
+ * Author: SynthPad Development Team
  *
  * Created on 18 de mayo de 2016, 06:58 PM
  */
@@ -28,6 +28,10 @@ void main(void){
     // Initialize by setting all registers needed
     Init();
     
+    unsigned char state = state_both;
+    unsigned char next_state = state_both;
+    unsigned int counter_clone = 0;
+    unsigned int counter_both = 0;
     while(1){
         
         // Check Switches
@@ -35,13 +39,48 @@ void main(void){
         updateSwitches(matrix0);
         updateSwitches(matrix1);
         
-        // Do Something
-        displayBoth();
+        // Do Something        
         
+        if( state == state_both ){
+            displayBoth();
+            if (button_state[16] == 1 & button_state_past[16] == 1){
+                counter_clone++;
+            }
+            else{
+                counter_clone = 0;
+            }
+            if (counter_clone == 100){
+                OpenI2C(MASTER,SLEW_OFF);
+                sunnyDay(matrix1);
+                delay(10000);
+                blackOut(matrix1);
+                CloseI2C();
+                counter_clone = 0;
+                next_state = state_clone1;
+            }
+        }
+        else if( state == state_clone1 ){
+            clone1to0();
+            if (button_state[0] == 1 & button_state_past[0] == 1){
+                counter_both++;
+            }
+            else{
+                counter_both = 0;
+            }
+            if (counter_both == 100){
+                OpenI2C(MASTER,SLEW_OFF);
+                sunnyDay(matrix0);
+                delay(10000);
+                blackOut(matrix0);
+                CloseI2C();
+                counter_both = 0;
+                next_state = state_both;
+            }
+        }
+                
         // One of the most important instructions
         delay(1000);    // Do not remove!!
         }
         
               
 }
-    
