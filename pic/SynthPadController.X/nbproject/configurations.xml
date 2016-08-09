@@ -13,6 +13,9 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>SynthPad.c</itemPath>
+      <itemPath>synthpad.h</itemPath>
+      <itemPath>synthpad_display.h</itemPath>
+      <itemPath>synthpad_keyscan.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

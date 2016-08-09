@@ -13,7 +13,6 @@
 #include <math.h>  // Are you going to be using these relatively slow math functions?
 #include <plib.h>
 #include "synthpad.h"
-
 /*
  * 
  */
@@ -28,43 +27,15 @@ void main(void){
 
     // Initialize by setting al registers needed
     Init();
-    OpenI2C(MASTER,SLEW_OFF);
-    SSPADD=0x09; //100kHz Baud clock(9) @4MHz
-
-    // Turn all LEDs off
-    blackOut(matrix0);
-    blackOut(matrix1);
-
     
-    // Start matrices
-    TurnMatrixOn( matrix0 );
-    TurnMatrixOn( matrix1 );
-    setBlinkRate( matrix0, Blink_OFF );
-    setBlinkRate( matrix1, Blink_OFF );
-    setBrightness( matrix0, 12 );
-    setBrightness( matrix1, 4 );
     
-    CloseI2C();
-
-    PORTD = 255;
-    delay();
-    PORTD = 0;
-    delay();
-    PORTD = 255;
-    delay();
-    PORTD = 0;          
-    OpenI2C(MASTER,SLEW_OFF);
     while(1){
-        // Matrices communication
-        //setLED(matrix0,i);
+        // Matrices communication        
         
-        PORTD = 0x80;
         for(int i = 0; i < 4; i++){
             switches_past[i] = switches[i];
         }
-        PORTD = 0x40;
         ReadSwitches(matrix1);
-        PORTD = 0x20;
         for(int i = 0; i < 16 ; i++){
             char x = ( buttonLUT[i] >> 4 ) & 0x0f;
             char y = ( buttonLUT[i] & 0x0f );
@@ -72,18 +43,20 @@ void main(void){
             char b1 = bit(switches[x],y);
             if( b1 != b0 ){
                 button_state[i] = ~button_state[i];
-            }
-            if( button_state[i] == 0xff){
-                setLED(matrix0,i);
-            } else {
-                clrLED(matrix0,i);
+                if( button_state[i] == 0xff){
+                    setLED(matrix0,i);
+                    // insert send command for UART
+                    
+                } else {
+                    clrLED(matrix0,i);
+                }
             }
         }
         display(matrix0);
-        delay();
+        display(matrix1);
+        delay(1000);    // Do not remove!!
               
     }
-    CloseI2C();
     
 }
 
