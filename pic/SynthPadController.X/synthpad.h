@@ -17,6 +17,10 @@
 #define state_both   0x00
 #define state_clone1 0x01
 
+
+const char CONFIG = USART_TX_INT_OFF | USART_RX_INT_OFF | USART_ASYNCH_MODE | USART_EIGHT_BIT | USART_CONT_RX | USART_BRGH_LOW;
+const char BAUD_CONFIG = BAUD_8_BIT_RATE | BAUD_AUTO_OFF;
+
 const char ledLUT[] =           // Translated from Adafruit lib
     { 0x72, 0x67, 0x65, 0x64,   // Don't mess with it... never!!!
       0x50, 0x51, 0x43, 0x44,
@@ -53,6 +57,18 @@ void WriteI2CByteByte(unsigned char matrix, unsigned char data0, unsigned char d
     WriteI2C( data1 );       // Send data Byte
     IdleI2C();
     StopI2C();              // Send Stop condition
+}
+
+void WriteMIDICommand(unsigned char data0, unsigned char data1, unsigned char data2){
+    OpenUSART(CONFIG, 1); //API configures USART for desired parameters
+    while(BusyUSART()); //Check if Usart is busy or not
+    WriteUSART(data0); //transmit the string
+    while(BusyUSART()); //Check if Usart is busy or not
+    WriteUSART(data1); //transmit the string
+    while(BusyUSART()); //Check if Usart is busy or not
+    WriteUSART(data2); //transmit the string
+    while(BusyUSART()); //Check if Usart is busy or not
+    CloseUSART();
 }
 
 void TurnMatrixOn(unsigned char matrix){
@@ -254,10 +270,6 @@ void checkSwitches(void){
 }
 
 void updateSwitches(unsigned char matrix){
-    for(int i = 0; i < 32; i++){
-        button_state_past[i] = button_state[i];
-    }
-    
     unsigned char offset_switch;
     unsigned char offset_state;
     if(matrix == matrix0){
@@ -269,13 +281,13 @@ void updateSwitches(unsigned char matrix){
         offset_state = 16;
     }
     for(int i = 0; i < 16 ; i++){
+        button_state_past[i+offset_state] = button_state[i+offset_state];
         // aux variables
         char x = ( buttonLUT[i] >> 4 ) & 0x0f;
         char y = ( buttonLUT[i] & 0x0f );
         // more aux variables
         char b0 = bit(switches_past[x + offset_switch],y);
         char b1 = bit(switches[x + offset_switch],y);
-        
         
         if ( b0 == 0 & b1 == 1){
             button_state[i+offset_state] = 1;
@@ -289,15 +301,18 @@ void updateSwitches(unsigned char matrix){
 }
 
 void Init(void){
-    /* Set PIC registers */
+    /* Configure I2C*/
     TRISC = 1;
     ADCON1 = 0x0f;
     TRISB0 = 1;
     TRISB1 = 1;
     TRISD = 1;
+    SSPADD=0x09; //100kHz Baud clock(9) @4MHz
+
+    /* Configure U(S)ART*/
+    baudUSART (BAUD_CONFIG);
 
     /* Set Matrices */
-    SSPADD=0x09; //100kHz Baud clock(9) @4MHz
     // Turn all LEDs off
     blackOut(matrix0);
     blackOut(matrix1);
