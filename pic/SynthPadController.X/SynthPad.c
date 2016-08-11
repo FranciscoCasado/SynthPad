@@ -29,7 +29,6 @@ void main(void){
     Init();
     
     unsigned char state = state_both;
-    unsigned char next_state = state_both;
     unsigned int counter_clone = 0;
     unsigned int counter_both = 0;
     while(1){
@@ -49,14 +48,14 @@ void main(void){
             else{
                 counter_clone = 0;
             }
-            if (counter_clone == 100){
+            if (counter_clone == 30){
                 OpenI2C(MASTER,SLEW_OFF);
                 sunnyDay(matrix1);
                 delay(10000);
                 blackOut(matrix1);
                 CloseI2C();
                 counter_clone = 0;
-                next_state = state_clone1;
+                state = state_clone1;
             }
         }
         else if( state == state_clone1 ){
@@ -67,20 +66,19 @@ void main(void){
             else{
                 counter_both = 0;
             }
-            if (counter_both == 100){
+            if (counter_both == 30){
                 OpenI2C(MASTER,SLEW_OFF);
                 sunnyDay(matrix0);
                 delay(10000);
                 blackOut(matrix0);
                 CloseI2C();
                 counter_both = 0;
-                next_state = state_both;
+                state = state_both;
             }
         }
                 
         // One of the most important instructions
         delay(1000);    // Do not remove!!
         }
-        
-              
+                      
 }

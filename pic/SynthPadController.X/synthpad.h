@@ -56,7 +56,9 @@ void WriteI2CByteByte(unsigned char matrix, unsigned char data0, unsigned char d
 }
 
 void TurnMatrixOn(unsigned char matrix){
+    OpenI2C(MASTER,SLEW_OFF);
     WriteI2CByte( matrix, 0x21 );
+    CloseI2C();
 }
 
 void delay(int k){
@@ -82,13 +84,17 @@ unsigned char displayBuffer[] =
 void setBrightness(unsigned char matrix, unsigned char brightness){
     if (brightness > 15)
         brightness = 15;
+    OpenI2C(MASTER,SLEW_OFF);
     WriteI2CByte(matrix, 0xE0 | brightness);
+    CloseI2C();
 }
 
 void setBlinkRate(unsigned char matrix, unsigned char freq){
     if (freq > 3)
         freq = 0;
+    OpenI2C(MASTER,SLEW_OFF);
     WriteI2CByte(matrix, 0x81 | (freq << 1));
+    CloseI2C();
 }
 
 void setLED(unsigned char matrix, unsigned char k){
@@ -291,7 +297,6 @@ void Init(void){
     TRISD = 1;
 
     /* Set Matrices */
-    OpenI2C(MASTER,SLEW_OFF);
     SSPADD=0x09; //100kHz Baud clock(9) @4MHz
     // Turn all LEDs off
     blackOut(matrix0);
@@ -303,7 +308,6 @@ void Init(void){
     setBlinkRate( matrix1, Blink_OFF );
     setBrightness( matrix0, 12 );
     setBrightness( matrix1, 4 );
-    CloseI2C();
 }
 
 
