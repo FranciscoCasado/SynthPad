@@ -97,6 +97,15 @@ architecture Behavioral of voice_unit is
   );
 	end component;
   
+  component custom_osc
+	port(
+    clk      : in  std_logic;
+    reset    : in  std_logic;
+    tick     : in  std_logic;          
+    wave_out : out std_logic_vector(9 downto 0)
+  );
+	end component;
+  
   component multiplier
   port(
     clk : in std_logic;
@@ -129,6 +138,7 @@ architecture Behavioral of voice_unit is
   signal wave_tri    : std_logic_vector(9 downto 0);
   signal wave_saw    : std_logic_vector(9 downto 0);
   signal wave_sine   : std_logic_vector(9 downto 0);
+  signal wave_custom : std_logic_vector(9 downto 0);
   signal wave        : std_logic_vector(9 downto 0);
   
   -- MIDI Decoder Signals
@@ -154,26 +164,27 @@ architecture Behavioral of voice_unit is
   
 begin
 
-  wave_out <= mult_adsr_output(17 downto 8);
+  wave_out <= mult_adsr_output(19 downto 10);
   
   --byte_debug <= adsr_envelope(9 downto 2);
 
-  wave_debug_1 <= mult_vel_output(15 downto 0);
-  wave_debug_2 <= mult_adsr_output(15 downto 0);
+  wave_debug_1 <= wave_sel&"00"&wave_sel;--mult_vel_output(15 downto 0);
+  wave_debug_2 <= "000000"&adsr_envelope;--mult_adsr_output(15 downto 0);
 
   -- Multiplier length compliance
-  wave_extended          <= "00000000"&wave;
-  vel_extended           <= "00000000"&vel&"000";
-  adsr_envelope_extended <= "00000000"&adsr_envelope;
-  mult_vel_output_normalized <= mult_vel_output(17 downto 8);
-  adst_input_extended <= "00000000"&mult_vel_output_normalized;
+  wave_extended              <= "00000000"&wave;
+  vel_extended               <= "00000000"&vel&"000";
+  adsr_envelope_extended     <= "00000000"&adsr_envelope;
+  mult_vel_output_normalized <= mult_vel_output(19 downto 10);
+  adst_input_extended        <= "00000000"&mult_vel_output_normalized;
 
   -- Wave selection
   wave <= 
-    wave_square when wave_sel(1 downto 0) = "00" else 
-    wave_tri    when wave_sel(1 downto 0) = "01" else
-    wave_saw    when wave_sel(1 downto 0) = "10" else
-    wave_sine   when wave_sel(1 downto 0) = "11";
+    wave_square when wave_sel(2 downto 0) = "000" else 
+    wave_tri    when wave_sel(2 downto 0) = "001" else
+    wave_saw    when wave_sel(2 downto 0) = "010" else
+    wave_sine   when wave_sel(2 downto 0) = "011" else
+    wave_custom;
 
   -- Voice Status
   voice_status <= 
@@ -265,6 +276,14 @@ begin
     reset    => reset,
     tick     => note_tick,
     wave_out => wave_sine
+  );
+  
+  Inst_custom_osc: custom_osc 
+  port map(
+    clk      => clk,
+    reset    => reset,
+    tick     => note_tick,
+    wave_out => wave_custom
   );
   
 end Behavioral;

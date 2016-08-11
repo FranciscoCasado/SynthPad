@@ -36,9 +36,9 @@ entity synth_top_module is
     adc_spi_miso : in  std_logic;     
     -- Spartan 3-E DAC
     SPI_MOSI     : out std_logic;
-		SPI_SCK      : out std_logic;
-		DAC_CS       : out std_logic;
-		DAC_CLR      : out std_logic;
+    SPI_SCK      : out std_logic;
+    DAC_CS       : out std_logic;
+    DAC_CLR      : out std_logic;
     SPI_SS_B     : out std_logic;
     AMP_CS       : out std_logic;
     AD_CONV      : out std_logic;
@@ -134,7 +134,8 @@ architecture Behavioral of synth_top_module is
     voice_3_ctrl_ticks : out std_logic_vector(3 downto 0);
     voice_4_ctrl_ticks : out std_logic_vector(3 downto 0);
     data_1             : out std_logic_vector(6 downto 0);
-    data_2             : out std_logic_vector(6 downto 0)
+    data_2             : out std_logic_vector(6 downto 0);
+    debug              : out std_logic
   );
   end component;
   
@@ -230,6 +231,7 @@ architecture Behavioral of synth_top_module is
   signal midi_voice_4_ctrl_ticks : std_logic_vector(3 downto 0);
   signal midi_data_1             : std_logic_vector(6 downto 0);
   signal midi_data_2             : std_logic_vector(6 downto 0);
+  signal midi_debug : std_logic;
 
 
   
@@ -259,10 +261,10 @@ begin
   adsr_sustain <= ch2_output(9 downto 2);
   adsr_release <= ch3_output(9 downto 2);
   
-  LED <= "0000"&voice_status;
+  LED <= midi_debug&midi_data_1;
     
-  lcd_upper <= wave_debug_1;--wave_out&"0"&voice_1_status_debug;
-  lcd_lower <= wave_debug_1;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
+  lcd_upper <= wave_debug_1;
+  lcd_lower <= wave_debug_2;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
 
   -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
@@ -293,8 +295,8 @@ begin
     adsr_release   => adsr_release,
     voice_on_tick  => midi_voice_1_ctrl_ticks(3),
     voice_off_tick => midi_voice_1_ctrl_ticks(2),
-    wave_sel_tick  => midi_voice_1_ctrl_ticks(1),
-    ctrl_sel_tick  => midi_voice_1_ctrl_ticks(0), 
+    wave_sel_tick  => midi_voice_1_ctrl_ticks(0),
+    ctrl_sel_tick  => midi_voice_1_ctrl_ticks(1), 
     wave_out       => wave_1,
     voice_status   => voice_status(0),
     status_debug   => voice_1_status_debug,
@@ -316,8 +318,8 @@ begin
     adsr_release   => adsr_release,
     voice_on_tick  => midi_voice_2_ctrl_ticks(3),
     voice_off_tick => midi_voice_2_ctrl_ticks(2),
-    wave_sel_tick  => midi_voice_2_ctrl_ticks(1),
-    ctrl_sel_tick  => midi_voice_2_ctrl_ticks(0), 
+    wave_sel_tick  => midi_voice_2_ctrl_ticks(0),
+    ctrl_sel_tick  => midi_voice_2_ctrl_ticks(1), 
     wave_out       => wave_2,
     voice_status   => voice_status(1)
   );
@@ -334,8 +336,8 @@ begin
     adsr_release   => adsr_release,
     voice_on_tick  => midi_voice_3_ctrl_ticks(3),
     voice_off_tick => midi_voice_3_ctrl_ticks(2),
-    wave_sel_tick  => midi_voice_3_ctrl_ticks(1),
-    ctrl_sel_tick  => midi_voice_3_ctrl_ticks(0), 
+    wave_sel_tick  => midi_voice_3_ctrl_ticks(0),
+    ctrl_sel_tick  => midi_voice_3_ctrl_ticks(1), 
     wave_out       => wave_3,
     voice_status   => voice_status(2)
   );
@@ -351,9 +353,9 @@ begin
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
     voice_on_tick  => midi_voice_4_ctrl_ticks(3),
-    voice_off_tick => midi_voice_3_ctrl_ticks(2),
-    wave_sel_tick  => midi_voice_2_ctrl_ticks(1),
-    ctrl_sel_tick  => midi_voice_1_ctrl_ticks(0), 
+    voice_off_tick => midi_voice_4_ctrl_ticks(2),
+    wave_sel_tick  => midi_voice_4_ctrl_ticks(0),
+    ctrl_sel_tick  => midi_voice_4_ctrl_ticks(1), 
     wave_out       => wave_4,
     voice_status   => voice_status(3)
   );
@@ -396,7 +398,8 @@ begin
     voice_3_ctrl_ticks => midi_voice_3_ctrl_ticks,
     voice_4_ctrl_ticks => midi_voice_4_ctrl_ticks,
     data_1             => midi_data_1,
-    data_2             => midi_data_2
+    data_2             => midi_data_2,
+    debug              => midi_debug
   );
     
   Inst_adc_interface: adc_interface 

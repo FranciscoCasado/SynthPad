@@ -41,7 +41,8 @@ entity midi_decoder is
     voice_3_ctrl_ticks : out std_logic_vector(3 downto 0);
     voice_4_ctrl_ticks : out std_logic_vector(3 downto 0);
     data_1             : out std_logic_vector(6 downto 0);
-    data_2             : out std_logic_vector(6 downto 0)
+    data_2             : out std_logic_vector(6 downto 0);
+    debug              : out std_logic
   );
 end midi_decoder;
 
@@ -120,7 +121,7 @@ begin
   
   process(state, prev_state)
   begin
-    if(state = status and prev_state = data2) then
+    if((state = status and prev_state = data2) or (state = status and prev_state = data1)) then
       update_tick <= '1';
     else
       update_tick <= '0';
@@ -235,10 +236,11 @@ begin
       
       if(update_tick = '1') then
         if(done = '0') then
-        
           done <= '1';
+          debug <= '0';
     
           if(CHANNEL_MESSAGE = '1') then
+            --debug <= '0';
             if(NOTE_ON = '1') then
               if(voice_status(0) = '0') then
                 voice_1_ctrl_ticks(3) <= '1'; -- 3 is NOTE_ON
@@ -280,6 +282,7 @@ begin
                 voice_4_ctrl_ticks(1) <= '1';
               end if;
             elsif(PROGRAM_CHANGE = '1') then
+              debug <= '1';
               voice_1_ctrl_ticks(0) <= '1'; -- 0 is PROGRAM_CHANGE
               voice_2_ctrl_ticks(0) <= '1';
               voice_3_ctrl_ticks(0) <= '1';
