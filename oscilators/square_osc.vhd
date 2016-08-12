@@ -36,7 +36,7 @@ architecture Behavioral of square_osc is
   
 begin
   
-  wave_out <= "1111111111" when state = '1' else 
+  wave_out <= "0111111111" when state = '1' else 
      "0000000000" when state = '0';
   
   process(clk, tick, reset)
