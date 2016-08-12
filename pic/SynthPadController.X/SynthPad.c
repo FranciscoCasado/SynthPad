@@ -57,15 +57,19 @@ void main(void){
                 delay(10000);
                 blackOut(matrix1);
                 counter_clone = 0;
+
+                WriteMIDICommand(0xC0,0x01,0x00);
                 state = state_clone1;
             }
             // Do something
+            /*
             if (button_state[2] == 1 & button_state_past[2] == 0){
                 WriteMIDICommand(0x90,0x47,0x48);
             }
             else if (button_state[2] == 0 & button_state_past[2] == 1){
                 WriteMIDICommand(0x80,0x47,0x48);
             }
+             */
         }
         else if( state == state_clone1 ){
             clone1to0();

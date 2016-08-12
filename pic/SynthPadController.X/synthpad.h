@@ -33,6 +33,17 @@ const char buttonLUT[] =
       0x03, 0x10, 0x30, 0x21,
       0x13, 0x12, 0x11, 0x31 };
 
+const char notesLUT[] =
+    { 67, 69, 71, 72,
+      79, 81, 83, 84,
+      67, 69, 71, 72,
+      79, 81, 83, 84,
+
+      60, 62, 64, 65,
+      72, 74, 76, 77,
+      60, 62, 64, 65,
+      72, 74, 76, 77, };
+
 /* Global methods */
 
 void WriteI2CByte(unsigned char matrix, unsigned char data){
@@ -292,10 +303,12 @@ void updateSwitches(unsigned char matrix){
         if ( b0 == 0 & b1 == 1){
             button_state[i+offset_state] = 1;
             setLED(matrix,i);
+            WriteMIDICommand(0x90,notesLUT[i+offset_state],0x48);
         }
         else if ( b0 == 1 & b1 == 0 ){
             button_state[i+offset_state] = 0;
             clrLED(matrix,i);
+            WriteMIDICommand(0x80,notesLUT[i+offset_state],0x48);
         }
     }
 }
