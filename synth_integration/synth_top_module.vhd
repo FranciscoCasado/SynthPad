@@ -263,8 +263,8 @@ begin
   
   LED <= midi_debug&midi_data_1;
     
-  lcd_upper <= wave_debug_1;
-  lcd_lower <= wave_debug_2;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
+  lcd_upper <= "000000000"&midi_data_1;
+  lcd_lower <= "000000000"&midi_data_2;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
 
   -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
