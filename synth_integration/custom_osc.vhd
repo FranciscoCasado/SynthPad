@@ -35,17 +35,17 @@ component custom_wave
   port(
     clka  : in  std_logic;
     wea   : in  std_logic_vector(0 downto 0);
-    addra : in  std_logic_vector(6 downto 0);
+    addra : in  std_logic_vector(10 downto 0);
     dina  : in  std_logic_vector(9 downto 0);
     douta : out std_logic_vector(9 downto 0)
   );  
 end component;
 
-  signal counter       : unsigned(6 downto 0);
-  signal counter_next  : unsigned(6 downto 0);
-  signal counter2      : unsigned(6 downto 0);
-  signal counter2_next : unsigned(6 downto 0);
-  signal addr          : std_logic_vector(6 downto 0);
+  signal counter       : unsigned(10 downto 0);
+  signal counter_next  : unsigned(10 downto 0);
+  signal counter2      : unsigned(10 downto 0);
+  signal counter2_next : unsigned(10 downto 0);
+  signal addr          : std_logic_vector(10 downto 0);
   signal counter_tick : std_logic;
 
 begin

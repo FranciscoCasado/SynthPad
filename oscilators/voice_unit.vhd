@@ -44,7 +44,8 @@ entity voice_unit is
     voice_status   : out std_logic;
     wave_debug_1   : out std_logic_vector(15 downto 0);
     wave_debug_2   : out std_logic_vector(15 downto 0);
-    status_debug   : out std_logic_vector(2 downto 0)
+    status_debug   : out std_logic_vector(2 downto 0); 
+    note_tick_debug : out std_logic
   );
 end voice_unit;
 
@@ -153,20 +154,20 @@ architecture Behavioral of voice_unit is
   signal mult_vel_output : std_logic_vector(35 downto 0);
   signal mult_vel_output_normalized : std_logic_vector(9 downto 0);
 
-  
-  
   -- ADSR Signals
-  signal adst_input_extended : std_logic_vector(17 downto 0);
-  signal adsr_envelope : std_logic_vector(9 downto 0);
+  signal adst_input_extended    : std_logic_vector(17 downto 0);
+  signal adsr_envelope          : std_logic_vector(9 downto 0);
   signal adsr_envelope_extended : std_logic_vector(17 downto 0);
-  signal mult_adsr_output : std_logic_vector(35 downto 0);
-  signal adsr_status : std_logic_vector(2 downto 0);
+  signal mult_adsr_output       : std_logic_vector(35 downto 0);
+  signal adsr_status            : std_logic_vector(2 downto 0);
   
 begin
 
   wave_out <= mult_adsr_output(19 downto 10);
   
   --byte_debug <= adsr_envelope(9 downto 2);
+  note_tick_debug <= note_tick;
+  status_debug <= adsr_status;
 
   wave_debug_1 <= wave_sel&"00"&wave_sel;--mult_vel_output(15 downto 0);
   wave_debug_2 <= "000000"&adsr_envelope;--mult_adsr_output(15 downto 0);

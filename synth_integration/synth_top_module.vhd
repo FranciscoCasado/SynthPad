@@ -89,7 +89,8 @@ architecture Behavioral of synth_top_module is
     voice_status   : out std_logic;
     status_debug   : out std_logic_vector(2 downto 0);
     wave_debug_1   : out std_logic_vector(15 downto 0);
-    wave_debug_2   : out std_logic_vector(15 downto 0)
+    wave_debug_2   : out std_logic_vector(15 downto 0);
+    note_tick_debug : out std_logic
   );
   end component;
   
@@ -263,8 +264,8 @@ begin
   
   LED <= midi_debug&midi_data_1;
     
-  lcd_upper <= "000000000"&midi_data_1;
-  lcd_lower <= "000000000"&midi_data_2;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
+  lcd_upper <= voice_status&"00000"&midi_data_1;
+  lcd_lower <= voice_1_status_debug&"000000"&midi_data_2;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
 
   -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
@@ -301,7 +302,8 @@ begin
     voice_status   => voice_status(0),
     status_debug   => voice_1_status_debug,
     wave_debug_1     => wave_debug_1,
-    wave_debug_2     => wave_debug_2
+    wave_debug_2     => wave_debug_2,
+    note_tick_debug  => tick
   );
   
     

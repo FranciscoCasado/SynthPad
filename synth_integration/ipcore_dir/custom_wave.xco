@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Wed Jun 15 22:22:05 2016
+# Date: Tue Aug 16 18:19:39 2016
 #
 ##############################################################
 #
@@ -46,7 +46,7 @@ CSET axi_id_width=4
 CSET axi_slave_type=Memory_Slave
 CSET axi_type=AXI4_Full
 CSET byte_size=9
-CSET coe_file=.\magnetic_wave.coe
+CSET coe_file=.\test.coe
 CSET collision_warnings=ALL
 CSET component_name=custom_wave
 CSET disable_collision_warnings=false
@@ -95,7 +95,7 @@ CSET use_regcea_pin=false
 CSET use_regceb_pin=false
 CSET use_rsta_pin=false
 CSET use_rstb_pin=false
-CSET write_depth_a=128
+CSET write_depth_a=2048
 CSET write_width_a=10
 CSET write_width_b=10
 # END Parameters
@@ -103,4 +103,4 @@ CSET write_width_b=10
 MISC pkg_timestamp=2011-10-21T13:54:23Z
 # END Extra information
 GENERATE
-# CRC: d287010d
+# CRC: 911f6efb
