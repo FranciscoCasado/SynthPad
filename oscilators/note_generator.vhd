@@ -201,11 +201,9 @@ begin
     elsif(clk'event and clk = '1') then
       note_tick <= '0';
       
-      if(counter = max_counter) then
+      if(counter >= max_counter) then
         note_tick <= '1';
         counter <= (others => '0');
-      else
-        counter <= counter + 1;
       end if;
         
     end if;
