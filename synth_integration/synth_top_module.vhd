@@ -81,6 +81,8 @@ architecture Behavioral of synth_top_module is
     adsr_decay     : in  std_logic_vector(7 downto 0);
     adsr_sustain   : in  std_logic_vector(7 downto 0);
     adsr_release   : in  std_logic_vector(7 downto 0);
+    vibrato_time   : in  std_logic_vector(7 downto 0);
+    vibrato_depth  : in  std_logic_vector(7 downto 0);
     voice_on_tick  : in  std_logic;
     voice_off_tick : in  std_logic;
     wave_sel_tick  : in  std_logic;
@@ -90,7 +92,10 @@ architecture Behavioral of synth_top_module is
     status_debug   : out std_logic_vector(2 downto 0);
     wave_debug_1   : out std_logic_vector(15 downto 0);
     wave_debug_2   : out std_logic_vector(15 downto 0);
-    note_tick_debug : out std_logic
+    note_tick_debug : out std_logic;
+    counter_1_debug : out std_logic_vector(15 downto 0);
+    counter_2_debug : out std_logic_vector(15 downto 0);
+    vibrato_status : out std_logic
   );
   end component;
   
@@ -225,6 +230,10 @@ architecture Behavioral of synth_top_module is
   signal adsr_sustain : std_logic_vector(7 downto 0);
   signal adsr_release : std_logic_vector(7 downto 0);
   
+  -- Vibrato Control Signals
+  signal vibrato_time  : std_logic_vector(7 downto 0);
+  signal vibrato_depth : std_logic_vector(7 downto 0);
+  
   -- MIDI Decoder - ADSR Control Signals
   signal midi_voice_1_ctrl_ticks : std_logic_vector(3 downto 0);
   signal midi_voice_2_ctrl_ticks : std_logic_vector(3 downto 0);
@@ -253,6 +262,10 @@ architecture Behavioral of synth_top_module is
   
   signal voice_1_status_debug : std_logic_vector(2 downto 0);
   
+  signal counter_1_debug : std_logic_vector(15 downto 0);
+  signal counter_2_debug : std_logic_vector(15 downto 0);
+  signal vibrato_status : std_logic;
+  
   signal wave_debug_1 : std_logic_vector(15 downto 0);
   signal wave_debug_2 : std_logic_vector(15 downto 0);
 begin
@@ -262,10 +275,13 @@ begin
   adsr_sustain <= ch2_output(9 downto 2);
   adsr_release <= ch3_output(9 downto 2);
   
-  LED <= midi_debug&midi_data_1;
+  vibrato_time  <= ch4_output(9 downto 2);
+  vibrato_depth <= ch5_output(9 downto 2);
+  
+  LED <= vibrato_status&"1000000";
     
-  lcd_upper <= voice_status&"00000"&midi_data_1;
-  lcd_lower <= voice_1_status_debug&"000000"&midi_data_2;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
+  lcd_upper <= counter_1_debug;
+  lcd_lower <= counter_2_debug;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
 
   -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
@@ -294,6 +310,8 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
+    vibrato_time   => vibrato_time,
+    vibrato_depth  => vibrato_depth,
     voice_on_tick  => midi_voice_1_ctrl_ticks(3),
     voice_off_tick => midi_voice_1_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_1_ctrl_ticks(0),
@@ -303,7 +321,10 @@ begin
     status_debug   => voice_1_status_debug,
     wave_debug_1     => wave_debug_1,
     wave_debug_2     => wave_debug_2,
-    note_tick_debug  => tick
+    note_tick_debug  => tick,
+    counter_1_debug => counter_1_debug,
+    counter_2_debug => counter_2_debug,
+    vibrato_status => vibrato_status
   );
   
     
@@ -318,6 +339,8 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
+    vibrato_time   => vibrato_time,
+    vibrato_depth  => vibrato_depth,
     voice_on_tick  => midi_voice_2_ctrl_ticks(3),
     voice_off_tick => midi_voice_2_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_2_ctrl_ticks(0),
@@ -336,6 +359,8 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
+    vibrato_time   => vibrato_time,
+    vibrato_depth  => vibrato_depth,
     voice_on_tick  => midi_voice_3_ctrl_ticks(3),
     voice_off_tick => midi_voice_3_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_3_ctrl_ticks(0),
@@ -354,6 +379,8 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
+    vibrato_time   => vibrato_time,
+    vibrato_depth  => vibrato_depth,
     voice_on_tick  => midi_voice_4_ctrl_ticks(3),
     voice_off_tick => midi_voice_4_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_4_ctrl_ticks(0),

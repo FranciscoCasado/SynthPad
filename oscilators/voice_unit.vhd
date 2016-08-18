@@ -36,6 +36,8 @@ entity voice_unit is
     adsr_decay     : in  std_logic_vector(7 downto 0);
     adsr_sustain   : in  std_logic_vector(7 downto 0);
     adsr_release   : in  std_logic_vector(7 downto 0);
+    vibrato_time   : in  std_logic_vector(7 downto 0);
+    vibrato_depth  : in  std_logic_vector(7 downto 0);
     voice_on_tick  : in  std_logic;
     voice_off_tick : in  std_logic;
     wave_sel_tick  : in  std_logic;
@@ -45,7 +47,10 @@ entity voice_unit is
     wave_debug_1   : out std_logic_vector(15 downto 0);
     wave_debug_2   : out std_logic_vector(15 downto 0);
     status_debug   : out std_logic_vector(2 downto 0); 
-    note_tick_debug : out std_logic
+    note_tick_debug : out std_logic;
+    counter_1_debug  : out std_logic_vector(15 downto 0);
+    counter_2_debug  : out std_logic_vector(15 downto 0);
+    vibrato_status : out std_logic
   );
 end voice_unit;
 
@@ -55,10 +60,15 @@ architecture Behavioral of voice_unit is
   -- Component declarations
   component note_generator
   port(
-    clk       : in  std_logic;
-    reset     : in  std_logic;
-    note_sel  : in  std_logic_vector(6 downto 0);
-    note_tick : out std_logic
+    clk           : in  std_logic;
+    reset         : in  std_logic;
+    note_sel      : in  std_logic_vector(6 downto 0);
+    vibrato_time  : in  std_logic_vector(7 downto 0);
+    vibrato_depth : in  std_logic_vector(7 downto 0);
+    note_tick     : out std_logic;
+    counter_1_debug : out std_logic_vector(15 downto 0);
+    counter_2_debug : out std_logic_vector(15 downto 0);
+    vibrato_status : out std_logic
   );
   end component;
   
@@ -211,10 +221,15 @@ begin
   -- Instantiation
   Inst_note_generator: note_generator 
   port map(
-    clk       => clk,
-    reset     => reset,
-    note_sel  => note,
-    note_tick => note_tick
+    clk           => clk,
+    reset         => reset,
+    note_sel      => note,
+    vibrato_time  => vibrato_time,
+    vibrato_depth => vibrato_depth,
+    note_tick     => note_tick,
+    counter_1_debug => counter_1_debug,
+    counter_2_debug => counter_2_debug,
+    vibrato_status => vibrato_status
   );
   
   Inst_multiplier_vel : multiplier
