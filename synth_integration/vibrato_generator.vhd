@@ -21,6 +21,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.divide_unsigned.all;
+
 entity vibrato_generator is
   port(
     clk             : in  std_logic;
@@ -42,14 +45,19 @@ architecture Behavioral of vibrato_generator is
   signal counter     : unsigned(15 downto 0); -- keeps at 1111111111111111
   
   signal internal_max_counter : std_logic_vector(15 downto 0);
-  signal internal_counter     : unsigned(17 downto 0) := (others => '0');
+  signal internal_counter     : unsigned(27 downto 0) := (others => '0');
   
   signal counter_range : unsigned(15 downto 0);
   signal state : std_logic; -- 0 baja - 1 sube
 
-  signal CLOCKS_PER_INCR : unsigned(17 downto 0);
+  signal num : unsigned(27 downto 0);
+  signal den : unsigned(27 downto 0);
+  signal CLOCKS_PER_INCR : unsigned(27 downto 0);
 
 begin
+
+  num <= UNSIGNED(time_pot)*100000000; -- revisar
+  den <= SHIFT_LEFT(counter_range, 16);
 
   vibrato_status <= state;
 
@@ -61,7 +69,12 @@ begin
   counter_range <= max_counter - min_counter;
   
   --CLOCKS_PER_INCR <= unsigned(time_pot)*counter_range&"0000000000000000000";
-  CLOCKS_PER_INCR <= "000111111111111111";--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--&"0000000000000000000";
+  --CLOCKS_PER_INCR <= divide(num, den);--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--&"0000000000000000000";
+  CLOCKS_PER_INCR <= unsigned("0000000000000"&time_pot&"1111111");
+
+  -- Pruebas: como esta en el commit funciona
+  -- agrandar buses, para letra m  i.e B3 counter 8099
+  -- agrandar, meter pot, multiplicar por 8099 dividir por lo mismo
 
   -- setear CLOCK_PER_INCR = (pot/256)/(time(usually 2)*f_clk)/(f_range(usually 0.5f and 2*f))
 
@@ -71,8 +84,8 @@ begin
 
   vibrato_counter <= std_logic_vector(counter);
 
-  counter_1_debug <= std_logic_vector(note_counter);
-  counter_2_debug <= std_logic_vector(max_counter);
+  counter_1_debug <= std_logic_vector(counter);
+  counter_2_debug <= std_logic_vector(max_counter);--std_logic_vector(max_counter);
 
   process(clk, reset)
   begin
