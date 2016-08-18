@@ -56,8 +56,8 @@ architecture Behavioral of vibrato_generator is
 
 begin
 
-  num <= UNSIGNED(time_pot)*100000000; -- revisar
-  den <= SHIFT_LEFT(counter_range, 16);
+  num <= unsigned(time_pot)*unsigned("00000"&time_pot&"1111111"); -- revisar
+  den <= unsigned("00000000000000000000"&time_pot);
 
   vibrato_status <= state;
 
@@ -70,11 +70,11 @@ begin
   
   --CLOCKS_PER_INCR <= unsigned(time_pot)*counter_range&"0000000000000000000";
   --CLOCKS_PER_INCR <= divide(num, den);--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--&"0000000000000000000";
-  CLOCKS_PER_INCR <= unsigned("0000000000000"&time_pot&"1111111");
+  CLOCKS_PER_INCR <= divide(num, den);
 
-  -- Pruebas: como esta en el commit funciona
-  -- agrandar buses, para letra m  i.e B3 counter 8099
-  -- agrandar, meter pot, multiplicar por 8099 dividir por lo mismo
+  -- Pruebas: como esta en el commit funciona OK
+  -- agrandar buses, para letra m  i.e B3 counter 2025
+  -- agrandar, meter pot, multiplicar por 2025 dividir por lo mismo
 
   -- setear CLOCK_PER_INCR = (pot/256)/(time(usually 2)*f_clk)/(f_range(usually 0.5f and 2*f))
 
