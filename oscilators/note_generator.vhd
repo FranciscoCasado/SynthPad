@@ -127,7 +127,7 @@ begin
     reset           => reset,
     note_counter    => counter_raw,
     time_pot        => "11111111",
-    frec_pot        => "00000001",
+    frec_pot        => "11111111",
     vibrato_counter => vibrato_counter,
     counter_1_debug => counter_1_debug,
     counter_2_debug => counter_2_debug,

@@ -53,15 +53,15 @@ begin
 
   vibrato_status <= state;
 
-  min_counter <= SHIFT_RIGHT(UNSIGNED(note_counter), 1);
+  min_counter <= unsigned(note_counter);
   
   max_counter <= "1111111111111111" when note_counter(15) = '1' else 
-     SHIFT_LEFT(UNSIGNED(note_counter), 1);
+     SHIFT_RIGHT(UNSIGNED(note_counter)*UNSIGNED(frec_pot), 7);
 
   counter_range <= max_counter - min_counter;
   
   --CLOCKS_PER_INCR <= unsigned(time_pot)*counter_range&"0000000000000000000";
-  CLOCKS_PER_INCR <= "111111111111111111";--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--&"0000000000000000000";
+  CLOCKS_PER_INCR <= "000111111111111111";--SHIFT_LEFT(unsigned(time_pot), 19)/counter_range;--&"0000000000000000000";
 
   -- setear CLOCK_PER_INCR = (pot/256)/(time(usually 2)*f_clk)/(f_range(usually 0.5f and 2*f))
 
