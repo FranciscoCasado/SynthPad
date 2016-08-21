@@ -14,6 +14,7 @@
                    projectFiles="true">
       <itemPath>SynthPad.c</itemPath>
       <itemPath>synthpad.h</itemPath>
+      <itemPath>MIDI_notes.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
