@@ -45,26 +45,26 @@ architecture Behavioral of vibrato_generator is
   signal counter     : unsigned(15 downto 0); -- keeps at 1111111111111111
   
   signal internal_max_counter : std_logic_vector(15 downto 0);
-  signal internal_counter     : unsigned(27 downto 0) := (others => '0');
+  signal internal_counter     : unsigned(19 downto 0) := (others => '0');
   
   signal counter_range : unsigned(15 downto 0);
   signal state : std_logic; -- 0 baja - 1 sube
 
-  signal num : unsigned(27 downto 0);
-  signal den : unsigned(27 downto 0);
-  signal CLOCKS_PER_INCR : unsigned(27 downto 0);
+  signal num : unsigned(22 downto 0);
+  signal den : unsigned(22 downto 0);
+  signal CLOCKS_PER_INCR : unsigned(22 downto 0);
 
 begin
 
-  num <= unsigned(time_pot)*unsigned("00000"&time_pot&"1111111"); -- revisar
-  den <= unsigned("00000000000000000000"&time_pot);
+  num <= unsigned(time_pot&"111111100000000"); -- revisar
+  den <= unsigned("0000000"&counter_range);
 
   vibrato_status <= state;
 
   min_counter <= unsigned(note_counter);
   
   max_counter <= "1111111111111111" when note_counter(15) = '1' else 
-     SHIFT_RIGHT(UNSIGNED(note_counter)*UNSIGNED(frec_pot), 7);
+     UNSIGNED(note_counter)+SHIFT_RIGHT(UNSIGNED(note_counter)*UNSIGNED(frec_pot), 7);
 
   counter_range <= max_counter - min_counter;
   
@@ -85,7 +85,7 @@ begin
   vibrato_counter <= std_logic_vector(counter);
 
   counter_1_debug <= std_logic_vector(counter);
-  counter_2_debug <= std_logic_vector(max_counter);--std_logic_vector(max_counter);
+  counter_2_debug <= time_pot&frec_pot;--td_logic_vector(max_counter);--std_logic_vector(max_counter);
 
   process(clk, reset)
   begin

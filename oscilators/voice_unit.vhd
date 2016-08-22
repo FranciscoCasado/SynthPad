@@ -36,8 +36,9 @@ entity voice_unit is
     adsr_decay     : in  std_logic_vector(7 downto 0);
     adsr_sustain   : in  std_logic_vector(7 downto 0);
     adsr_release   : in  std_logic_vector(7 downto 0);
-    vibrato_time   : in  std_logic_vector(7 downto 0);
-    vibrato_depth  : in  std_logic_vector(7 downto 0);
+    vibrato_enable : in  std_logic;
+    vibrato_ctrl   : in  std_logic;
+    vibrato_value  : in  std_logic_vector(7 downto 0);
     voice_on_tick  : in  std_logic;
     voice_off_tick : in  std_logic;
     wave_sel_tick  : in  std_logic;
@@ -60,12 +61,13 @@ architecture Behavioral of voice_unit is
   -- Component declarations
   component note_generator
   port(
-    clk           : in  std_logic;
-    reset         : in  std_logic;
-    note_sel      : in  std_logic_vector(6 downto 0);
-    vibrato_time  : in  std_logic_vector(7 downto 0);
-    vibrato_depth : in  std_logic_vector(7 downto 0);
-    note_tick     : out std_logic;
+    clk            : in  std_logic;
+    reset          : in  std_logic;
+    note_sel       : in  std_logic_vector(6 downto 0);
+    vibrato_enable : in std_logic;
+    vibrato_time   : in  std_logic_vector(7 downto 0);
+    vibrato_depth  : in  std_logic_vector(7 downto 0);
+    note_tick      : out std_logic;
     counter_1_debug : out std_logic_vector(15 downto 0);
     counter_2_debug : out std_logic_vector(15 downto 0);
     vibrato_status : out std_logic
@@ -171,6 +173,10 @@ architecture Behavioral of voice_unit is
   signal mult_adsr_output       : std_logic_vector(35 downto 0);
   signal adsr_status            : std_logic_vector(2 downto 0);
   
+  -- Vibrato Signals
+  signal vibrato_time  : std_logic_vector(7 downto 0);
+  signal vibrato_depth : std_logic_vector(7 downto 0);
+  
 begin
 
   wave_out <= mult_adsr_output(19 downto 10);
@@ -205,6 +211,21 @@ begin
   process(clk, reset)
   begin
     if(reset = '1') then
+      vibrato_time  <= (others => '0');
+      vibrato_depth <= (others => '0');
+    elsif(clk'event and clk = '1') then
+      if(vibrato_ctrl = '1') then
+        vibrato_time <= vibrato_value;
+      else
+        vibrato_depth <= vibrato_value;
+      end if;
+    end if;
+    
+  end process;
+    
+  process(clk, reset)
+  begin
+    if(reset = '1') then
       note     <= "0000000";
       vel      <= "0000000";
       wave_sel <= "0000000";
@@ -221,15 +242,16 @@ begin
   -- Instantiation
   Inst_note_generator: note_generator 
   port map(
-    clk           => clk,
-    reset         => reset,
-    note_sel      => note,
-    vibrato_time  => vibrato_time,
-    vibrato_depth => vibrato_depth,
-    note_tick     => note_tick,
+    clk             => clk,
+    reset           => reset,
+    note_sel        => note,
+    vibrato_enable  => vibrato_enable,
+    vibrato_time    => vibrato_time,
+    vibrato_depth   => vibrato_depth,
+    note_tick       => note_tick,
     counter_1_debug => counter_1_debug,
     counter_2_debug => counter_2_debug,
-    vibrato_status => vibrato_status
+    vibrato_status  => vibrato_status
   );
   
   Inst_multiplier_vel : multiplier

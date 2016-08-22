@@ -81,8 +81,9 @@ architecture Behavioral of synth_top_module is
     adsr_decay     : in  std_logic_vector(7 downto 0);
     adsr_sustain   : in  std_logic_vector(7 downto 0);
     adsr_release   : in  std_logic_vector(7 downto 0);
-    vibrato_time   : in  std_logic_vector(7 downto 0);
-    vibrato_depth  : in  std_logic_vector(7 downto 0);
+    vibrato_enable : in  std_logic;
+    vibrato_ctrl   : in  std_logic;
+    vibrato_value  : in  std_logic_vector(7 downto 0);
     voice_on_tick  : in  std_logic;
     voice_off_tick : in  std_logic;
     wave_sel_tick  : in  std_logic;
@@ -231,8 +232,9 @@ architecture Behavioral of synth_top_module is
   signal adsr_release : std_logic_vector(7 downto 0);
   
   -- Vibrato Control Signals
-  signal vibrato_time  : std_logic_vector(7 downto 0);
-  signal vibrato_depth : std_logic_vector(7 downto 0);
+  signal vibrato_enable : std_logic;
+  signal vibrato_ctrl   : std_logic; -- sorry, only got 5 pots...
+  signal vibrato_value  : std_logic_vector(7 downto 0);
   
   -- MIDI Decoder - ADSR Control Signals
   signal midi_voice_1_ctrl_ticks : std_logic_vector(3 downto 0);
@@ -243,8 +245,6 @@ architecture Behavioral of synth_top_module is
   signal midi_data_2             : std_logic_vector(6 downto 0);
   signal midi_debug : std_logic;
 
-
-  
   -- ADC 
   signal ch0_output : std_logic_vector(9 downto 0);
   signal ch1_output : std_logic_vector(9 downto 0);
@@ -275,13 +275,15 @@ begin
   adsr_sustain <= ch2_output(9 downto 2);
   adsr_release <= ch3_output(9 downto 2);
   
-  vibrato_time  <= ch4_output(9 downto 2);
-  vibrato_depth <= ch5_output(9 downto 2);
+  vibrato_enable <= SW(0);
+  vibrato_ctrl   <= SW(1);
+  vibrato_value  <= ch4_output(9 downto 2);
+
   
-  LED <= vibrato_status&"1000000";
+  LED <= vibrato_value;--vibrato_status&"1000000";
     
-  lcd_upper <= counter_1_debug;
-  lcd_lower <= counter_2_debug;--uart_byte&byte_debug;--adsr_sustain&adsr_release;
+  lcd_upper <= adsr_attack&adsr_decay;--counter_1_debug;
+  lcd_lower <= adsr_sustain&adsr_release;--counter_2_debug;;
 
   -- Spartan 3-E DAC SPI Config
   SPI_SS_B    <= '1';
@@ -310,8 +312,9 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
-    vibrato_time   => vibrato_time,
-    vibrato_depth  => vibrato_depth,
+    vibrato_enable => vibrato_enable,
+    vibrato_ctrl   => vibrato_ctrl,
+    vibrato_value  => vibrato_value,
     voice_on_tick  => midi_voice_1_ctrl_ticks(3),
     voice_off_tick => midi_voice_1_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_1_ctrl_ticks(0),
@@ -339,8 +342,9 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
-    vibrato_time   => vibrato_time,
-    vibrato_depth  => vibrato_depth,
+    vibrato_enable => vibrato_enable,
+    vibrato_ctrl   => vibrato_ctrl,
+    vibrato_value  => vibrato_value,
     voice_on_tick  => midi_voice_2_ctrl_ticks(3),
     voice_off_tick => midi_voice_2_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_2_ctrl_ticks(0),
@@ -359,8 +363,9 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
-    vibrato_time   => vibrato_time,
-    vibrato_depth  => vibrato_depth,
+    vibrato_enable => vibrato_enable,
+    vibrato_ctrl   => vibrato_ctrl,
+    vibrato_value  => vibrato_value,
     voice_on_tick  => midi_voice_3_ctrl_ticks(3),
     voice_off_tick => midi_voice_3_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_3_ctrl_ticks(0),
@@ -379,8 +384,9 @@ begin
     adsr_decay     => adsr_decay,
     adsr_sustain   => adsr_sustain,
     adsr_release   => adsr_release,
-    vibrato_time   => vibrato_time,
-    vibrato_depth  => vibrato_depth,
+    vibrato_enable => vibrato_enable,
+    vibrato_ctrl   => vibrato_ctrl,
+    vibrato_value  => vibrato_value,
     voice_on_tick  => midi_voice_4_ctrl_ticks(3),
     voice_off_tick => midi_voice_4_ctrl_ticks(2),
     wave_sel_tick  => midi_voice_4_ctrl_ticks(0),
@@ -443,6 +449,7 @@ begin
     ch1_output => ch1_output,
     ch2_output => ch2_output,
     ch3_output => ch3_output,
+    ch4_output => ch4_output,
     shift_in  => adc_shift_in 
   );
     

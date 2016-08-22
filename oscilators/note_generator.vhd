@@ -23,12 +23,13 @@ use ieee.numeric_std.all;
 
 entity note_generator is
   port ( 
-    clk           : in  std_logic;
-    reset         : in  std_logic;
-    note_sel      : in  std_logic_vector(6 downto 0);
-    vibrato_time  : in  std_logic_vector(7 downto 0);
-    vibrato_depth : in  std_logic_vector(7 downto 0);
-    note_tick     : out std_logic;
+    clk            : in  std_logic;
+    reset          : in  std_logic;
+    note_sel       : in  std_logic_vector(6 downto 0);
+    vibrato_enable : in std_logic;
+    vibrato_time   : in  std_logic_vector(7 downto 0);
+    vibrato_depth  : in  std_logic_vector(7 downto 0);
+    note_tick      : out std_logic;
     counter_1_debug : out std_logic_vector(15 downto 0);
     counter_2_debug : out std_logic_vector(15 downto 0);
     vibrato_status : out std_logic
@@ -105,7 +106,11 @@ begin
 
   counter_raw <= map_out;
   --max_counter <= UNSIGNED(map_out); 
-  max_counter <= UNSIGNED(vibrato_counter);
+  
+  with vibrato_enable select max_counter <=
+    UNSIGNED(vibrato_counter) when '1',
+    UNSIGNED(map_out) when others;
+  
   --counter_1_debug <= std_logic_vector(vibrato_counter);
   --counter_2_debug <= std_logic_vector(counter);
   
@@ -126,8 +131,8 @@ begin
     clk             => clk,
     reset           => reset,
     note_counter    => counter_raw,
-    time_pot        => "11111111",
-    frec_pot        => "11111111",
+    time_pot        => vibrato_time, --
+    frec_pot        => vibrato_depth,--,
     vibrato_counter => vibrato_counter,
     counter_1_debug => counter_1_debug,
     counter_2_debug => counter_2_debug,
