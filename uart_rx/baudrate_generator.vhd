@@ -17,8 +17,8 @@
 -- Additional Comments: 
 --
 ----------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity baudrate_generator is
@@ -27,9 +27,9 @@ entity baudrate_generator is
     N : integer := 8		-- 
   );
   port(
-    clk : in std_logic;
-    rst : in std_logic;
-    tick : out std_logic
+    clk   : in std_logic;
+    reset : in std_logic;
+    tick  : out std_logic
   );
 end baudrate_generator;
 
@@ -40,9 +40,9 @@ signal r_next : unsigned (N-1 downto 0);
 
 begin
 
-  process(clk, rst)
+  process(clk, reset)
   begin
-    if(rst = '1') then
+    if(reset = '1') then
       r_reg <= (others => '0');
     elsif(clk'event and clk = '1') then
       r_reg <= r_next;

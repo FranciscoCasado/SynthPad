@@ -121,7 +121,7 @@ begin
   Inst_dac_interface: dac_interface port map(
     data_in => "010101010101",
     comm => "0011",
-    addr => "0000",
+    addr => "1111",
     reset => SW,
     CLK => CLK,
     SPI_MOSI => SPI_MOSI,

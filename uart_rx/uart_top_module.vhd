@@ -17,32 +17,32 @@
 -- Additional Comments: 
 --
 ----------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
-use IEEE.NUMERIC_STD.ALL;
+use ieee.numeric_std.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity uart_top_module is
+entity uart_module is
   port(
-    clk   : in  std_logic;
-    reset : in  std_logic;
-    rx    : in  std_logic;
-    LED   : out std_logic_vector(7 downto 0);
-	 TICK  : out std_logic;
-	 RX_DONE : out std_logic
+    clk     : in  std_logic;
+    reset   : in  std_logic;
+    rx      : in  std_logic;
+    data    : out std_logic_vector(7 downto 0);
+    tick    : out std_logic;
+    rx_done : out std_logic
   );
-end uart_top_module;
+end uart_module;
 
-architecture Behavioral of uart_top_module is
+architecture Behavioral of uart_module is
 
--- Declare components
+  -- Declare components
   component uart_rx
   port(
     clk          : in   std_logic;
@@ -56,23 +56,42 @@ architecture Behavioral of uart_top_module is
     
   component baudrate_generator
   port(
-    clk  : in  std_logic;
-    rst  : in  std_logic;          
-    tick : out std_logic
-    );
+    clk   : in  std_logic;
+    reset : in  std_logic;          
+    tick  : out std_logic
+  );
   end component;
   
   component dout_reg
   port(
-    dout    : in  STD_LOGIC_VECTOR (7 downto 0);
-    rx_done : in  STD_LOGIC;
-    data    : out  STD_LOGIC_VECTOR (7 downto 0);
-	 reset   : in std_logic
-    );
+    reset   : in  std_logic;
+    dout    : in  std_logic_vector(7 downto 0);
+    rx_done : in  std_logic;
+    data    : out std_logic_vector(7 downto 0)
+  );
+  end component;
+  
+  component midi_decoder
+  port(
+    clk       : in  std_logic;
+    reset     : in  std_logic;
+    byte_in   : in  std_logic_vector(7 downto 0);
+    tick      : in  std_logic;          
+    wave_ctrl : out std_logic_vector(3 downto 0);
+    note_sel1 : out std_logic_vector(6 downto 0);
+    wave_sel1 : out std_logic_vector(1 downto 0);
+    note_sel2 : out std_logic_vector(6 downto 0);
+    wave_sel2 : out std_logic_vector(1 downto 0);
+    note_sel3 : out std_logic_vector(6 downto 0);
+    wave_sel3 : out std_logic_vector(1 downto 0);
+    note_sel4 : out std_logic_vector(6 downto 0);
+    wave_sel4 : out std_logic_vector(1 downto 0);
+    status_out : out std_logic_vector(7 downto 0)
+  );
   end component;
   
   
--- Declare signals
+  -- Declare signals
   signal s_tick : std_logic;
   signal rx_done_tick : std_logic;
   
@@ -86,10 +105,10 @@ architecture Behavioral of uart_top_module is
 -- Processes and Instantiation
 begin
 
-  process(clk,reset)
+  process(clk, reset)
   begin
     if(reset = '1') then
-      LED <= "11111111";
+      data <= "11111111";
     else
       if(clk'event and clk = '1') then
         if(state = '1') then
@@ -102,18 +121,18 @@ begin
           state <= '1';
         end if;
       
-        LED <= data_out(7 downto 0);
-        TICK  <= s_tick;
-		  RX_DONE <= rx_done_tick;
+        data    <= data_out(7 downto 0);
+        tick    <= s_tick;
+		    rx_done <= rx_done_tick;
       end if;
       
     end if;
   end process;
   
   Inst_baudrate_generator: baudrate_generator 
-  PORT MAP(
+  port map(
     clk  => clk,
-    rst  => reset, 
+    reset  => reset, 
     tick => s_tick
 	);
   
@@ -130,9 +149,9 @@ begin
   Inst_dout_reg: dout_reg
   port map(
     dout    => uart_out,
-	 rx_done => rx_done_tick,
-	 data    => data_out,
-	 reset   => reset
+    rx_done => rx_done_tick,
+    data    => data_out,
+    reset   => reset
   );
 
 end Behavioral;
