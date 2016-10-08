@@ -6,17 +6,19 @@
 #include <ctype.h>  // Are you processing ASCII chars?
 #include <math.h>  // Are you going to be using these relatively slow math functions?
 #include <plib.h>
+#include "MIDI_notes.h"
 
 /* Global definitions */
 
 #define matrix0 ( 0x70 << 1 )
 #define matrix1 ( 0x71 << 1 )
 
-#define bit(x,n) (((x) >> (n)) & 1)
+#define bit(x,n) (((x) >> (n)) & 1)     // Retrieve bit value from x
+
 
 #define state_both   0x00
 #define state_clone1 0x01
-
+#define state_wave_select 0x2
 
 const char CONFIG = USART_TX_INT_OFF | USART_RX_INT_OFF | USART_ASYNCH_MODE | USART_EIGHT_BIT | USART_CONT_RX | USART_BRGH_LOW;
 const char BAUD_CONFIG = BAUD_8_BIT_RATE | BAUD_AUTO_OFF;
@@ -32,17 +34,6 @@ const char buttonLUT[] =
       0x05, 0x06, 0x00, 0x01,
       0x03, 0x10, 0x30, 0x21,
       0x13, 0x12, 0x11, 0x31 };
-
-const char notesLUT[] =
-    { 67, 69, 71, 72,
-      79, 81, 83, 84,
-      67, 69, 71, 72,
-      79, 81, 83, 84,
-
-      60, 62, 64, 65,
-      72, 74, 76, 77,
-      60, 62, 64, 65,
-      72, 74, 76, 77, };
 
 /* Global methods */
 
@@ -101,11 +92,18 @@ void delay(int k){
 #define Blink_0Hz5 0x03
 
 unsigned char displayBuffer[] =
+    //Matrix0
     { 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00,
-    
+    //Matrix1
       0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 };
+
+void clrDisplayBuffer(void) {
+    for( char i = 0; i<16 ; i++){
+        displayBuffer[i] = 0x00;
+    }
+}
 
 
 void setBrightness(unsigned char matrix, unsigned char brightness){
@@ -151,8 +149,8 @@ void clrLED(unsigned char matrix, unsigned char k){
         else{
             x = ((ledLUT[k]&0xF0) >> 4) + 8;        
         }
-        displayBuffer[x] &= 0xfe << (ledLUT[k] & 0x0F);
-        displayBuffer[x] &= 0xfe << (ledLUT[k] & 0x0F);
+        displayBuffer[x] &= ~(0x01 << (ledLUT[k] & 0x0F));
+        displayBuffer[x] &= ~(0x01 << (ledLUT[k] & 0x0F));
     }
 }
 
@@ -211,6 +209,60 @@ void sunnyDay(unsigned char matrix){
     CloseI2C();
 }
 
+void setDisplaySaw(void){
+    clrDisplayBuffer();
+    setLED(matrix1, 0);
+    setLED(matrix1, 5);
+    setLED(matrix1, 10);
+    setLED(matrix1, 15);
+    setLED(matrix0, 0);
+    setLED(matrix0, 5);
+    setLED(matrix0, 10);
+    setLED(matrix0, 15);
+}
+
+void setDisplayTri(void){
+    clrDisplayBuffer();
+    setLED(matrix1, 1);
+    setLED(matrix1, 6);
+    setLED(matrix1, 11);
+    setLED(matrix1, 14);
+    setLED(matrix0, 1);
+    setLED(matrix0, 4);
+    setLED(matrix0, 9);
+    setLED(matrix0, 14);
+}
+
+void setDisplaySine(void){
+    clrDisplayBuffer();
+    setLED(matrix1, 2);
+    setLED(matrix1, 7);
+    setLED(matrix1, 11);
+    setLED(matrix1, 14);
+    setLED(matrix0, 1);
+    setLED(matrix0, 4);
+    setLED(matrix0, 8);
+    setLED(matrix0, 13);
+}
+
+void setDisplaySquare(void){
+    clrDisplayBuffer();
+    setLED(matrix1, 3);
+    setLED(matrix1, 7);
+    setLED(matrix1, 8);
+    setLED(matrix1, 9);
+    setLED(matrix1, 10);
+    setLED(matrix1, 11);
+    setLED(matrix1, 12);
+    setLED(matrix0, 0);
+    setLED(matrix0, 4);
+    setLED(matrix0, 5);
+    setLED(matrix0, 6);
+    setLED(matrix0, 7);
+    setLED(matrix0, 11);
+    setLED(matrix0, 15);
+}
+
 
 /* KeyScan*/
 
@@ -218,7 +270,7 @@ void sunnyDay(unsigned char matrix){
 unsigned char switches[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 unsigned char switches_past[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-unsigned char button_state[] = 
+unsigned char isPressed[] = 
     { 0, 0, 0, 0,
       0, 0, 0, 0,
       0, 0, 0, 0,
@@ -228,7 +280,18 @@ unsigned char button_state[] =
       0, 0, 0, 0,
       0, 0, 0, 0 };
 
-unsigned char button_state_past[] = 
+unsigned char justPressed[] = 
+    { 0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0 };
+
+
+unsigned char justReleased[] = 
     { 0, 0, 0, 0,
       0, 0, 0, 0,
       0, 0, 0, 0,
@@ -292,7 +355,6 @@ void updateSwitches(unsigned char matrix){
         offset_state = 16;
     }
     for(int i = 0; i < 16 ; i++){
-        button_state_past[i+offset_state] = button_state[i+offset_state];
         // aux variables
         char x = ( buttonLUT[i] >> 4 ) & 0x0f;
         char y = ( buttonLUT[i] & 0x0f );
@@ -301,15 +363,22 @@ void updateSwitches(unsigned char matrix){
         char b1 = bit(switches[x + offset_switch],y);
         
         if ( b0 == 0 & b1 == 1){
-            button_state[i+offset_state] = 1;
+            justPressed[i+offset_state] = 1;
+            isPressed[i+offset_state] = 1;
             setLED(matrix,i);
-            WriteMIDICommand(0x90,notesLUT[i+offset_state],0x48);
+            // WriteMIDICommand(0x90,notesLUT[i+offset_state],0x48);
         }
         else if ( b0 == 1 & b1 == 0 ){
-            button_state[i+offset_state] = 0;
+            justReleased[i+offset_state] = 1;
+            isPressed[i+offset_state] = 0;
             clrLED(matrix,i);
-            WriteMIDICommand(0x80,notesLUT[i+offset_state],0x48);
+            // WriteMIDICommand(0x80,notesLUT[i+offset_state],0x48);
         }
+        else{
+            justReleased[i+offset_state] = 0;
+            justPressed[i+offset_state] = 0;
+        }
+        
     }
 }
 
